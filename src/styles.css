@@ -50,7 +50,7 @@ header p { color: var(--muted); margin: 0 0 16px; }
 .thesis { border-top: 1px solid #24405c; margin-top: 16px; padding-top: 16px; }
 .thesis h3 { margin: 0 0 6px; }
 .thesis p { color: var(--muted); margin: 0; }
-.restart { margin-top: 18px; align-items: center; text-align: center; }
+.restart { margin-top: 18px; width: 100%; align-items: center; text-align: center; }
 
 @media (max-width: 540px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
