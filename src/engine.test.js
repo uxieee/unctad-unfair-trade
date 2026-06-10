@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, CONFIG, applyDrift, termsOfTrade, applyAction, ACTIONS } from './engine.js';
+import { createInitialState, CONFIG, applyDrift, termsOfTrade, applyAction, ACTIONS, takeTurn, finalOutcome } from './engine.js';
 
 describe('createInitialState', () => {
   it('starts a commodity-dependent nation with healthy treasury', () => {
@@ -69,5 +69,43 @@ describe('applyAction', () => {
   });
   it('throws on an unknown action', () => {
     expect(() => applyAction(createInitialState(), 'nope')).toThrow();
+  });
+});
+
+describe('takeTurn', () => {
+  it('applies action then drift, advances the turn, and records history', () => {
+    const s = createInitialState();
+    const r = takeTurn(s, 'export_more');
+    expect(r.turn).toBe(2);
+    expect(r.history.length).toBe(2);
+    expect(r.history.at(-1)).toMatchObject({ turn: 1 });
+  });
+  it('marks status collapsed when treasury goes negative', () => {
+    let s = createInitialState();
+    s = { ...s, treasury: -5 };
+    const r = takeTurn(s, 'diversify');
+    expect(r.status).toBe('collapsed');
+  });
+  it('ends the game after maxTurns', () => {
+    let s = createInitialState();
+    for (let i = 0; i < CONFIG.maxTurns; i++) {
+      s = takeTurn(s, 'export_more');
+    }
+    expect(s.status).not.toBe('playing');
+  });
+});
+
+describe('finalOutcome', () => {
+  it('thriving requires diversification and growth', () => {
+    const s = { ...createInitialState(), diversification: 60, treasury: 200 };
+    expect(finalOutcome(s)).toBe('thriving');
+  });
+  it('a commodity-dependent survivor is stagnant', () => {
+    const s = { ...createInitialState(), diversification: 0, treasury: 50 };
+    expect(finalOutcome(s)).toBe('stagnant');
+  });
+  it('negative treasury is collapsed', () => {
+    const s = { ...createInitialState(), treasury: -1 };
+    expect(finalOutcome(s)).toBe('collapsed');
   });
 });

@@ -74,3 +74,32 @@ export function applyAction(state, actionId) {
   }
   return next;
 }
+
+export function finalOutcome(state) {
+  if (state.treasury < 0) return 'collapsed';
+  if (state.diversification >= 50 && state.treasury > CONFIG.startTreasury) {
+    return 'thriving';
+  }
+  return 'stagnant';
+}
+
+export function takeTurn(state, actionId) {
+  if (state.status !== 'playing') return state;
+  const acted = applyAction(state, actionId);
+  const drifted = applyDrift(acted);
+  const completedTurn = state.turn;
+  const next = {
+    ...drifted,
+    turn: state.turn + 1,
+    history: [
+      ...state.history,
+      { turn: completedTurn, termsOfTrade: termsOfTrade(drifted), treasury: drifted.treasury },
+    ],
+  };
+  if (next.treasury < 0) {
+    next.status = 'collapsed';
+  } else if (next.turn > CONFIG.maxTurns) {
+    next.status = finalOutcome(next);
+  }
+  return next;
+}
