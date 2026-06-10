@@ -109,3 +109,27 @@ describe('finalOutcome', () => {
     expect(finalOutcome(s)).toBe('collapsed');
   });
 });
+
+// Balance invariants: there must be a real win path, and exporting must not be it.
+describe('game balance', () => {
+  const play = (...actions) => {
+    let s = createInitialState();
+    for (const a of actions) s = takeTurn(s, a);
+    return s;
+  };
+
+  it('a committed diversify + advocacy strategy reaches a thriving outcome', () => {
+    const s = play('diversify', 'diversify', 'diversify', 'diversify',
+                   'demand_terms', 'demand_terms', 'export_more', 'export_more');
+    expect(s.status).toBe('thriving');
+    expect(s.treasury).toBeGreaterThan(CONFIG.startTreasury);
+  });
+
+  it('exporting every year never thrives and ends poorer than the smart path', () => {
+    const exportOnly = play(...Array(CONFIG.maxTurns).fill('export_more'));
+    const smart = play('diversify', 'diversify', 'diversify', 'diversify',
+                       'demand_terms', 'demand_terms', 'export_more', 'export_more');
+    expect(exportOnly.status).not.toBe('thriving');
+    expect(exportOnly.treasury).toBeLessThan(smart.treasury);
+  });
+});

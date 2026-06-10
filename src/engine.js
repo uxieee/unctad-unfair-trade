@@ -1,8 +1,16 @@
 export const CONFIG = {
   maxTurns: 8,
   startTreasury: 100,
-  exportDecay: 0.93,
-  importInflation: 1.05,
+  exportDecay: 0.93,        // commodity export prices drift down ~7%/yr
+  importInflation: 1.05,    // import prices drift up ~5%/yr
+  importCostFactor: 0.8,    // share of import price paid as cost each year
+  manufacturingValue: 2.2,  // income per point of diversification (the payoff)
+  exportBurst: 0.3,         // extra commodity cash from "export more"
+  dependencyPenalty: 0.95,  // "export more" deepens commodity dependence
+  diversifyCost: 25,        // up-front cost of diversifying
+  diversifyStep: 15,        // diversification gained per "diversify"
+  blocDiscount: 0.93,       // import-price cut from joining a regional bloc
+  demandBoost: 1.1,         // export-price gain from demanding fairer terms
 };
 
 export function termsOfTrade(state) {
@@ -42,8 +50,8 @@ export const ACTIONS = [
 
 function baseIncome(state) {
   const commodity = state.exportPrice * (1 - state.diversification / 100);
-  const manufacturing = state.diversification * 1.2;
-  const importCost = state.importPrice * 0.8;
+  const manufacturing = state.diversification * CONFIG.manufacturingValue;
+  const importCost = state.importPrice * CONFIG.importCostFactor;
   return Math.round(commodity + manufacturing - importCost);
 }
 
@@ -56,20 +64,20 @@ export function applyAction(state, actionId) {
 
   switch (actionId) {
     case 'export_more':
-      next.treasury += Math.round(income + state.exportPrice * 0.5);
-      next.exportPrice = Math.round(next.exportPrice * 0.95);
+      next.treasury += Math.round(income + state.exportPrice * CONFIG.exportBurst);
+      next.exportPrice = Math.round(next.exportPrice * CONFIG.dependencyPenalty);
       break;
     case 'diversify':
-      next.treasury += income - 40;
-      next.diversification = Math.min(100, next.diversification + 15);
+      next.treasury += income - CONFIG.diversifyCost;
+      next.diversification = Math.min(100, next.diversification + CONFIG.diversifyStep);
       break;
     case 'join_bloc':
       next.treasury += income;
-      next.importPrice = Math.round(next.importPrice * 0.95);
+      next.importPrice = Math.round(next.importPrice * CONFIG.blocDiscount);
       break;
     case 'demand_terms':
       next.treasury += income;
-      next.exportPrice = Math.round(next.exportPrice * 1.08);
+      next.exportPrice = Math.round(next.exportPrice * CONFIG.demandBoost);
       break;
   }
   return next;
