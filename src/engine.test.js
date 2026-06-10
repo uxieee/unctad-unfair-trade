@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInitialState, CONFIG, applyDrift, termsOfTrade } from './engine.js';
+import { createInitialState, CONFIG, applyDrift, termsOfTrade, applyAction, ACTIONS } from './engine.js';
 
 describe('createInitialState', () => {
   it('starts a commodity-dependent nation with healthy treasury', () => {
@@ -35,5 +35,39 @@ describe('applyDrift (the unfair mechanic)', () => {
     const dDep = applyDrift(dependent).exportPrice;
     const dDiv = applyDrift(diversified).exportPrice;
     expect(dDiv).toBeGreaterThan(dDep);
+  });
+});
+
+describe('applyAction', () => {
+  it('exposes the four UNCTAD-themed actions', () => {
+    expect(ACTIONS.map(a => a.id)).toEqual(
+      ['export_more', 'diversify', 'join_bloc', 'demand_terms']
+    );
+  });
+  it('export_more adds the most cash this turn but deepens dependency', () => {
+    const s = createInitialState();
+    const r = applyAction(s, 'export_more');
+    expect(r.treasury).toBeGreaterThan(s.treasury);
+    expect(r.exportPrice).toBeLessThan(s.exportPrice);
+    expect(r.diversification).toBe(0);
+  });
+  it('diversify costs cash now but raises diversification', () => {
+    const s = createInitialState();
+    const r = applyAction(s, 'diversify');
+    expect(r.diversification).toBeGreaterThan(s.diversification);
+    expect(r.treasury).toBeLessThan(s.treasury);
+  });
+  it('demand_terms improves export prices (advocacy)', () => {
+    const s = createInitialState();
+    const r = applyAction(s, 'demand_terms');
+    expect(r.exportPrice).toBeGreaterThan(s.exportPrice);
+  });
+  it('join_bloc lowers import prices (cooperation)', () => {
+    const s = createInitialState();
+    const r = applyAction(s, 'join_bloc');
+    expect(r.importPrice).toBeLessThan(s.importPrice);
+  });
+  it('throws on an unknown action', () => {
+    expect(() => applyAction(createInitialState(), 'nope')).toThrow();
   });
 });
