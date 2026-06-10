@@ -22,3 +22,13 @@ export function createInitialState() {
     history: [{ turn: 0, termsOfTrade: 100, treasury: CONFIG.startTreasury }],
   };
 }
+
+export function applyDrift(state) {
+  const exposure = 1 - state.diversification / 100;
+  const decay = CONFIG.exportDecay + (1 - CONFIG.exportDecay) * (1 - exposure);
+  return {
+    ...state,
+    exportPrice: Math.round(state.exportPrice * decay),
+    importPrice: Math.round(state.importPrice * CONFIG.importInflation),
+  };
+}
