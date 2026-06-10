@@ -1,2 +1,58 @@
-:root { color-scheme: dark; }
-body { margin: 0; font-family: system-ui, sans-serif; }
+:root {
+  color-scheme: dark;
+  --bg: #0d1b2a;
+  --panel: #14283d;
+  --ink: #e8eef5;
+  --muted: #9fb3c8;
+  --accent: #4cc9a4;
+  --danger: #e76f6f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.4;
+}
+.game { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 4px; }
+header p { color: var(--muted); margin: 0 0 16px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stat {
+  background: var(--panel); border-radius: 10px; padding: 10px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.stat span { color: var(--muted); font-size: .8rem; }
+.stat strong { font-size: clamp(1.1rem, 3vw, 1.5rem); }
+
+.chart { background: var(--panel); border-radius: 10px; padding: 12px; margin: 16px 0; color: var(--accent); }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart-label { color: var(--muted); font-size: .8rem; margin: 6px 0 0; }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action {
+  text-align: left; background: var(--panel); color: var(--ink);
+  border: 1px solid #24405c; border-radius: 12px; padding: 14px;
+  cursor: pointer; display: flex; flex-direction: column; gap: 6px;
+  font-size: 1rem; transition: border-color .15s, transform .05s;
+}
+.action:hover { border-color: var(--accent); }
+.action:active { transform: scale(.99); }
+.action span { color: var(--muted); font-size: .85rem; }
+
+.results { background: var(--panel); border-radius: 14px; padding: 24px; margin-top: 8px; }
+.results h2 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 0 0 8px; }
+.results--collapsed h2 { color: var(--danger); }
+.results--thriving h2 { color: var(--accent); }
+.results-body { color: var(--ink); }
+.thesis { border-top: 1px solid #24405c; margin-top: 16px; padding-top: 16px; }
+.thesis h3 { margin: 0 0 6px; }
+.thesis p { color: var(--muted); margin: 0; }
+.restart { margin-top: 18px; align-items: center; text-align: center; }
+
+@media (max-width: 540px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .actions { grid-template-columns: 1fr; }
+}
