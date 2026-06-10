@@ -1,5 +1,6 @@
 import { createInitialState, takeTurn } from './engine.js';
 import { renderStats, renderActions, renderChart } from './ui.js';
+import { renderResults } from './results.js';
 
 const app = document.querySelector('#app');
 let state = createInitialState();
@@ -10,16 +11,7 @@ function render() {
   shell.className = 'game';
 
   if (state.status !== 'playing') {
-    // Temporary end screen; replaced by the teaching results screen in Task 9.
-    const end = document.createElement('section');
-    end.className = 'results';
-    end.innerHTML = `<h2>Game over: ${state.status}</h2>`;
-    const again = document.createElement('button');
-    again.className = 'action';
-    again.textContent = 'Play again';
-    again.addEventListener('click', restart);
-    end.appendChild(again);
-    shell.appendChild(end);
+    shell.appendChild(renderResults(state, restart));
     app.appendChild(shell);
     return;
   }
