@@ -1,15 +1,449 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="description" content="A short browser game about declining terms of trade — the Prebisch-Singer thesis behind UNCTAD." />
-    <title>Unfair Trade — A UNCTAD Simulation</title>
-    <link rel="stylesheet" href="/src/styles.css" />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Unfair Trade · A report on UNCTAD</title>
+<meta name="description" content="Why does trade keep the poorest countries poor? A scrollytelling report on UN Trade and Development (UNCTAD), with a playable simulation of the terms-of-trade trap.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============================ THE TERMS-OF-TRADE SPINE ============================ -->
+<!-- Persistent sparkline + scroll progress, driven by scrollY (never GSAP). -->
+<div class="spine" id="spine" aria-hidden="true">
+  <svg class="spine__svg" id="spineSvg" preserveAspectRatio="none" viewBox="0 0 40 1000">
+    <path class="spine__track" id="spineTrack" fill="none" stroke-width="1.5"></path>
+    <path class="spine__live" id="spineLive" fill="none" stroke-width="2.5"></path>
+    <circle class="spine__dot" id="spineDot" r="4"></circle>
+  </svg>
+  <span class="spine__label" id="spineLabel">TERMS OF TRADE</span>
+</div>
+
+<a href="#sec-game-handoff" class="skip-link">Skip to the game ↓</a>
+
+<main id="main">
+
+<!-- ============================ §5.1 · COLD OPEN ============================ -->
+<section class="scene scene--void cold-open" id="sec-open" data-screen-label="01 · Cold open" data-tone="cold">
+  <svg class="ship" id="ship" viewBox="0 0 600 160" aria-hidden="true">
+    <!-- low container-ship profile: hull + stacked container blocks + funnel -->
+    <path d="M40 120 L560 120 L530 150 L80 150 Z"></path>
+    <rect x="120" y="86" width="50" height="34"></rect>
+    <rect x="176" y="74" width="50" height="46"></rect>
+    <rect x="232" y="86" width="50" height="34"></rect>
+    <rect x="288" y="70" width="50" height="50"></rect>
+    <rect x="344" y="86" width="50" height="34"></rect>
+    <rect x="400" y="80" width="44" height="40"></rect>
+    <rect x="466" y="58" width="22" height="62"></rect>
+    <rect x="472" y="40" width="10" height="18"></rect>
+  </svg>
+  <div class="cold-open__inner">
+    <p class="kicker kicker--cold">A report on UN Trade and Development</p>
+    <h1 class="cold-open__q" id="coldQ">In 1964, the poorest countries of the world<br>asked one question: <em>why does trade keep them poor?</em></h1>
+    <p class="cold-open__scroll" aria-hidden="true">Scroll ↓</p>
+  </div>
+</section>
+
+<!-- ============================ §5.2 · BIRTH OF UNCTAD ============================ -->
+<section class="scene scene--paper" id="sec-birth" data-screen-label="02 · Birth of UNCTAD" data-tone="cold">
+  <div class="grid">
+    <div class="col-anchor reveal">
+      <div class="monogram" aria-hidden="true">
+        <span class="monogram__rp">RP</span>
+        <span class="monogram__cap">Raúl Prebisch</span>
+      </div>
+    </div>
+    <div class="col-prose">
+      <p class="bigyear reveal" data-countup="1964" data-suffix="">1964</p>
+      <h2 class="reveal">A conference becomes an institution.</h2>
+      <p class="lede reveal">In the spring of 1964, delegates gathered in Geneva for the first United Nations Conference on Trade and Development. It was meant to last a few weeks. It never really ended.</p>
+      <p class="reveal">The room was full of newly independent states. Decolonization had handed dozens of countries political sovereignty and left them with colonial economies: dig something out of the ground, grow something in the sun, ship it north at whatever price the buyer offered. Independence on paper, dependence in the ledger.</p>
+      <p class="reveal">At that first conference the developing nations organized themselves into the <strong>Group of 77</strong>, a bloc that survives today. And they chose an Argentine economist, <strong>Raúl Prebisch</strong>, as the institution's first Secretary-General, a post he held from <strong>1964 to 1969</strong>. Prebisch had spent his career on a single, uncomfortable idea: that the world economy is split into a wealthy industrial <em>centre</em> and a commodity-exporting <em>periphery</em> · and that the rules quietly favor the centre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.3 · WHAT UNCTAD IS ============================ -->
+<section class="scene scene--paper" id="sec-what" data-screen-label="03 · What UNCTAD is" data-tone="cold">
+  <div class="grid">
+    <div class="col-prose">
+      <p class="kicker reveal">The institution, plainly</p>
+      <h2 class="reveal">A permanent forum for the countries the trade system was not built for.</h2>
+      <p class="reveal">UNCTAD is a permanent intergovernmental body of the United Nations. It does not set tariffs or settle disputes. It does something quieter and, in 1964, genuinely new: it gives the developing world a standing place to study the trade system, name what is unfair about it, and argue for change.</p>
+    </div>
+    <div class="col-prose">
+      <div class="statrow reveal">
+        <div class="stat">
+          <span class="stat__num mono" data-countup="195">195</span>
+          <span class="stat__lab mono">member states · late 2025</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num mono" data-countup="3">3</span>
+          <span class="stat__lab mono">pillars of work</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num mono">Geneva</span>
+          <span class="stat__lab mono">headquarters since 1964</span>
+        </div>
+      </div>
+      <ul class="pillars reveal">
+        <li><span class="mono pillars__n">01</span><div><strong>Research &amp; analysis.</strong> The data desk of the developing world, measuring how the terms of trade actually move.</div></li>
+        <li><span class="mono pillars__n">02</span><div><strong>Consensus-building.</strong> Quadrennial conferences where members negotiate shared positions, not binding rules.</div></li>
+        <li><span class="mono pillars__n">03</span><div><strong>Technical cooperation.</strong> Hands-on help for governments trying to climb the value ladder.</div></li>
+      </ul>
+      <p class="footnote reveal">In 2024 the body was rebranded <strong>UN Trade and Development</strong>. The acronym, UNCTAD, was kept.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.4 · PREBISCH-SINGER (PINNED, GSAP-scrubbed) ============================ -->
+<section class="scene scene--void pin-scene" id="sec-thesis" data-screen-label="04 · Prebisch-Singer thesis" data-tone="cold">
+  <div class="pin-wrap" id="thesisPin">
+    <div class="pin-stage">
+      <div class="pin-text">
+        <p class="kicker kicker--alarm">The thesis · Prebisch-Singer</p>
+        <h2 id="thesisHead">Your coffee buys fewer tractors each year.</h2>
+        <p class="pin-narration" id="thesisNarr">The prices of raw commodities tend to fall over time against the price of manufactured goods. So a country that sells coffee, copper or cotton to buy machines finds the same harvest buying a little less each year. Economists call it a decline in the <strong>terms of trade</strong>. Prebisch and Hans Singer described it in 1950. It has been quietly true ever since.</p>
+        <p class="pin-readout mono"><span id="thesisGapText">TERMS-OF-TRADE GAP: opening</span></p>
+      </div>
+      <figure class="scissor" aria-label="Two diverging price-index lines: manufactures rising, commodities falling. The widening gap is the deterioration in the terms of trade.">
+        <svg class="scissor__svg" id="scissorSvg" viewBox="0 0 800 460" preserveAspectRatio="xMidYMid meet">
+          <!-- gridlines -->
+          <g class="scissor__grid" id="scissorGrid"></g>
+          <!-- hatch gap -->
+          <path class="scissor__gap" id="scissorGap"></path>
+          <!-- lines -->
+          <path class="scissor__mfg" id="scissorMfg" fill="none"></path>
+          <path class="scissor__com" id="scissorCom" fill="none"></path>
+          <!-- end labels -->
+          <g id="scissorLabels"></g>
+        </svg>
+        <figcaption class="scissor__cap mono">
+          <span class="tag tag--mfg">▲ Manufactures price index · rises</span>
+          <span class="tag tag--com">▼ Commodity price index · falls</span>
+          <span class="tag tag--note">Manufactures climb; commodities slide. The pattern Prebisch and Singer named.</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.5 · COMMODITY DEPENDENCE TODAY (PINNED dot grid) ============================ -->
+<section class="scene scene--void pin-scene" id="sec-dependence" data-screen-label="05 · Commodity dependence today" data-tone="cold">
+  <div class="pin-wrap" id="depPin">
+    <div class="pin-stage pin-stage--dots">
+      <div class="pin-text">
+        <p class="kicker kicker--alarm">State of Commodity Dependence, 2025</p>
+        <h2>Most developing economies still live and die by raw exports.</h2>
+        <p class="pin-narration">Of <strong>143</strong> developing economies measured, <strong id="depCount" class="mono">95</strong> are commodity-dependent: they earn more than 60% of their export income from raw materials. That includes more than <strong>80%</strong> of the world's Least Developed Countries. Selling more raw goods does not break the dependence. It deepens it. The way out is to <strong>diversify and add value</strong>.</p>
+        <p class="pin-readout mono"><span id="depReadout">0 / 143 commodity-dependent</span></p>
+      </div>
+      <figure class="dotfig" aria-label="A grid of 143 dots arranged as 13 columns by 11 rows. 95 are highlighted to show the 95 of 143 developing economies that are commodity-dependent.">
+        <div class="dotgrid" id="dotgrid" role="img" aria-label="95 of 143 dots highlighted"></div>
+        <figcaption class="dotfig__cap mono">13 columns × 11 rows = 143 economies · 95 commodity-dependent</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.6 · HANDOFF → GAME (snap point 1) ============================ -->
+<section class="scene scene--void handoff snap" id="sec-game-handoff" data-screen-label="06 · Handoff to game" data-tone="cold">
+  <div class="handoff__inner reveal">
+    <p class="kicker kicker--warm">The simulation</p>
+    <h2>Reading about it isn't the same as living it.</h2>
+    <p class="lede">You are one developing nation. You have twelve years, from 1964 to 1976, and one job: get rich without staying a colony. Watch your best move stop working.</p>
+    <button class="play-btn" id="playBtn" type="button" aria-label="Play the game, Unfair Trade">
+      <span class="play-btn__tri" aria-hidden="true">▶</span>
+      <span class="play-btn__txt">Play <em>Unfair&nbsp;Trade</em></span>
+    </button>
+  </div>
+</section>
+
+<!-- ============================ §5.8 · DEBRIEF (snap point 2) ============================ -->
+<section class="scene scene--paper debrief-story snap" id="sec-debrief" data-screen-label="08 · Debrief" data-tone="warm">
+  <div class="grid">
+    <div class="col-prose">
+      <p class="kicker reveal">Your run, against history</p>
+      <h2 class="reveal" id="debriefHead">The line you drew is the line the data has been drawing for sixty years.</h2>
+      <p class="reveal" id="debriefBody">Play the simulation above and your nation's terms-of-trade line appears here, traced against the long historical decline. Whether you escaped or sank, the shape is the argument: left alone, the line falls.</p>
+      <p class="reveal bridge"><strong>That feeling, your best move quietly failing, is the whole point of this report.</strong> You just played the Prebisch-Singer thesis: a raw exporter's terms of trade decline year after year, so the only way out is to add value at home and demand fairer terms abroad. Everything below is how UNCTAD has fought that exact fight since 1964.</p>
+    </div>
+    <div class="col-prose">
+      <figure class="runfig reveal">
+        <svg class="runfig__svg" id="runSvg" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet" aria-label="Your nation's terms-of-trade line compared to the historical decline.">
+          <g id="runGrid"></g>
+          <path id="runHist" fill="none"></path>
+          <path id="runYou" fill="none"></path>
+          <g id="runLabels"></g>
+        </svg>
+        <figcaption class="mono runfig__cap" id="runCap">Play the game to draw your line.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.9 · PRESCRIPTIONS (warm) ============================ -->
+<section class="scene scene--warm prescriptions" id="sec-rx" data-screen-label="09 · Prescriptions" data-tone="warm">
+  <div class="grid">
+    <div class="col-prose">
+      <p class="kicker kicker--warm reveal">The way out</p>
+      <h2 class="reveal">The escape is the way you won, or didn't.</h2>
+      <p class="reveal">A winning player does two things: adds value at home and demands fairer terms abroad. These are not invented game mechanics. They are UNCTAD's actual prescriptions, fought for across six decades.</p>
+    </div>
+    <div class="col-prose">
+      <ul class="checklist reveal" id="checklist">
+        <li data-rx><span class="check" aria-hidden="true"></span><div><strong>Diversify &amp; add value.</strong> Stop shipping raw beans; ship roasted, ground, branded coffee. Every step up the value ladder slows the decline.</div></li>
+        <li data-rx><span class="check" aria-hidden="true"></span><div><strong>Generalized System of Preferences (GSP).</strong> UNCTAD's idea: let rich markets cut tariffs for developing exporters, a leg up rather than a level field.</div></li>
+        <li data-rx><span class="check" aria-hidden="true"></span><div><strong>New International Economic Order (1974).</strong> The G77's bid to rewrite the rules of global trade wholesale: ambitious, partly realized, never abandoned.</div></li>
+        <li data-rx><span class="check" aria-hidden="true"></span><div><strong>The Least Developed Countries category (1971).</strong> A formal class, today <span class="mono">44</span> countries, singled out for special support.</div></li>
+        <li data-rx><span class="check" aria-hidden="true"></span><div><strong>Demand fairer terms, together.</strong> One exporter is a price-taker. A bloc is a negotiator.</div></li>
+      </ul>
+      <div class="rxbars reveal" aria-hidden="true">
+        <span class="rxbar"></span><span class="rxbar"></span><span class="rxbar"></span><span class="rxbar"></span><span class="rxbar"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ §5.10 · THE HONEST LIMIT ============================ -->
+<section class="scene scene--paper limit" id="sec-limit" data-screen-label="10 · The honest limit" data-tone="warm">
+  <div class="limit__inner">
+    <p class="kicker kicker--blue reveal">The honest limit</p>
+    <h2 class="limit__quote reveal">A demand without leverage is just a press release.</h2>
+    <div class="limit__cols reveal">
+      <div class="limit__col">
+        <p class="limit__caph mono">What UNCTAD cannot do</p>
+        <p>Unlike the World Trade Organization, it has no binding rules and no power to enforce them. It cannot fine a country or strike down a tariff.</p>
+      </div>
+      <div class="limit__col">
+        <p class="limit__caph mono">What it does instead</p>
+        <p>Its influence is analytical and diplomatic. It produces the research, builds the coalitions, and sharpens the argument the developing world carries to the table.</p>
+      </div>
+    </div>
+    <p class="limit__tie reveal">That limit is the whole reason the game gates <strong>Demand Fairer Terms</strong> behind bargaining power. In the simulation, as in the world, you cannot simply ask for a better deal. You earn the standing to be heard by diversifying and by organizing.</p>
+  </div>
+</section>
+
+<!-- ============================ §5.11 · CLOSE ============================ -->
+<section class="scene scene--warm close" id="sec-close" data-screen-label="11 · Close" data-tone="warm">
+  <div class="close__inner reveal">
+    <p class="kicker kicker--warm">Present tense</p>
+    <h2>The conference that never ended is still in session.</h2>
+    <p class="lede">In October 2025, the sixteenth UNCTAD conference met in Geneva and adopted what it called the <strong>Geneva Consensus</strong>. The body now counts <strong>195 members</strong> and has been led since 2021 by <strong>Rebeca Grynspan</strong>. In 2024 it took a new public name · <strong>UN Trade and Development</strong> · and kept the old initials.</p>
+    <p>Sixty-one years after a roomful of newly free countries asked why trade kept them poor, the question still has not been fully answered. But it has, at last, a permanent place to be asked.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================ THE GAME OVERLAY (§5.7) ============================ -->
+<!-- Full-viewport cockpit. Hidden until launched. Built/driven by game.js. -->
+<div class="game" id="game" hidden aria-hidden="true">
+  <!-- cockpit ground: grid + vignette via CSS; grain overlay -->
+  <div class="game__ground" aria-hidden="true"></div>
+  <div class="game__sat" id="gameSat" aria-hidden="true"></div>
+  <div class="game__vignette" id="gameVignette" aria-hidden="true"></div>
+
+  <div class="game__shell" role="application" aria-label="Unfair Trade · economic simulation">
+
+    <!-- top bar: nation + turn pips + mute/close -->
+    <header class="hud-top">
+      <div class="hud-top__id">
+        <span class="hud-top__nation mono">REPÚBLICA DEL SUR</span>
+        <span class="hud-top__sub mono">a developing nation · the periphery · 1964</span>
+      </div>
+      <div class="hud-top__turn">
+        <span class="mono pips__lab">TURN <span id="turnNum">1</span> / 12</span>
+        <div class="pips" id="pips" aria-hidden="true"></div>
+      </div>
+      <div class="hud-top__ctrl">
+        <button class="iconbtn mono" id="helpBtn" type="button" title="How to play">?</button>
+        <button class="iconbtn mono" id="muteBtn" type="button" aria-pressed="false" title="Sound">♪</button>
+        <button class="iconbtn iconbtn--report mono" id="closeBtn" type="button" title="Return to the report">↩ Report</button>
+      </div>
+    </header>
+
+    <!-- main play area -->
+    <div class="hud-main">
+      <!-- left rail: three capsule tanks -->
+      <div class="rail" aria-hidden="false">
+        <div class="tank tank--treasury" title="Your cash. Upkeep drains it every year; reach $0 and you lose.">
+          <span class="tank__lab mono">TREASURY</span>
+          <div class="tank__tube"><span class="tank__fill" id="tankTreasury"></span></div>
+          <span class="tank__val mono" id="valTreasury">$100</span>
+        </div>
+        <div class="tank tank--cap" title="How industrialised you are. Higher capacity slows the price decline and is your way out of the trap.">
+          <span class="tank__lab mono">CAPACITY</span>
+          <div class="tank__tube"><span class="tank__fill" id="tankCap"></span></div>
+          <span class="tank__val mono" id="valCap">5%</span>
+        </div>
+        <div class="tank tank--barg" title="Your diplomatic leverage. At 40 you can demand fairer terms; 60 is needed for the top rank.">
+          <span class="tank__lab mono">BARGAINING</span>
+          <div class="tank__tube">
+            <span class="tank__fill" id="tankBarg"></span>
+            <span class="tank__mark tank__mark--40" title="40 unlocks Demand Fairer Terms"></span>
+            <span class="tank__mark tank__mark--60" title="60 required for Rank S"></span>
+          </div>
+          <span class="tank__val mono" id="valBarg">10</span>
+        </div>
+      </div>
+
+      <!-- center: hero treasury + scissor chart + balance beam -->
+      <div class="center">
+        <div class="hero-treasury">
+          <span class="mono hero-treasury__lab">TREASURY</span>
+          <span class="mono hero-treasury__val" id="heroTreasury">$100</span>
+          <div class="beam" id="beam" title="Terms of trade balance" aria-hidden="true">
+            <span class="beam__pivot"></span>
+            <span class="beam__bar" id="beamBar"><span class="beam__pan beam__pan--l"></span><span class="beam__pan beam__pan--r"></span></span>
+          </div>
+        </div>
+        <figure class="gchart">
+          <svg class="gchart__svg" id="gchartSvg" viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet" aria-label="Terms of trade chart. The red line is your commodity price index; the blue line is the manufactures price index. The gap between them is your deteriorating terms of trade.">
+            <g id="gchartGrid"></g>
+            <path id="gchartGap"></path>
+            <path id="gchartMfg" fill="none"></path>
+            <path id="gchartCom" fill="none"></path>
+            <g id="gchartDots"></g>
+          </svg>
+          <figcaption class="gchart__cap mono">
+            <span class="tag tag--mfg">MANUFACTURES <span id="mfgVal">100</span></span>
+            <span class="tag tag--com">COMMODITY <span id="comVal">100</span></span>
+          </figcaption>
+          <p class="gchart__explain mono">The gap between the lines is your terms of trade. As red falls under blue, the same harvest buys fewer machines.</p>
+        </figure>
+      </div>
+    </div>
+
+    <!-- ticker + labor + action deck (thumb zone on mobile) -->
+    <footer class="hud-bottom" id="hudBottom">
+      <div class="ticker" id="ticker" aria-live="polite"><span class="ticker__dot"></span><span id="tickerText">1964. The harvest is in. The world is buying. Allocate your labor.</span></div>
+
+      <div class="labor">
+        <div class="labor__head">
+          <span class="labor__lab mono">YOUR WORKFORCE · <span id="laborCount">5</span> WORKERS</span>
+          <span class="labor__hint mono" id="laborHint">tap FIELD or FACTORY below to send them to work</span>
+          <button class="labor__reset mono" id="resetWorkers" type="button" title="Clear worker assignment">↺ Reset</button>
+        </div>
+        <div class="workforce" id="workforce" aria-hidden="true">
+          <div class="wf-zone wf-zone--field">
+            <span class="wf-sun"></span>
+            <span class="wf-crop"></span><span class="wf-crop"></span><span class="wf-crop"></span>
+            <span class="wf-ztag mono">FIELD</span>
+          </div>
+          <div class="wf-zone wf-zone--village">
+            <span class="wf-hut"></span><span class="wf-hut wf-hut--2"></span>
+            <span class="wf-ztag mono">VILLAGE</span>
+          </div>
+          <div class="wf-zone wf-zone--factory">
+            <span class="wf-building"><span class="wf-chimney"></span><span class="wf-smoke"></span><span class="wf-smoke wf-smoke--2"></span></span>
+            <span class="wf-ztag mono">FACTORY</span>
+          </div>
+          <div class="wf-ground"></div>
+          <div class="wf-people" id="wfPeople"></div>
+        </div>
+      </div>
+
+      <div class="deck" id="deck" role="group" aria-label="Choose your moves">
+        <button class="acard acard--export" id="cardExport" type="button" data-key="1">
+          <span class="acard__key mono">1</span>
+          <span class="acard__name mono">EXPORT COMMODITIES</span>
+          <span class="acard__desc">Sell the harvest. Fast money that floods your own market.</span>
+          <span class="acard__payoff mono" id="exportPayoff">+$0</span>
+          <span class="acard__alloc mono" id="exportAlloc">0 labor</span>
+        </button>
+        <button class="acard acard--build" id="cardBuild" type="button" data-key="2">
+          <span class="acard__key mono">2</span>
+          <span class="acard__name mono">BUILD INDUSTRY</span>
+          <span class="acard__desc">Add value. Slow now; it compounds and earns leverage.</span>
+          <span class="acard__payoff mono" id="buildPayoff">+$0</span>
+          <span class="acard__alloc mono" id="buildAlloc">0 labor</span>
+        </button>
+        <button class="acard acard--bloc" id="cardBloc" type="button" data-key="3">
+          <span class="acard__key mono">3</span>
+          <span class="acard__name mono">JOIN REGIONAL BLOC</span>
+          <span class="acard__desc">−$30 once. +25 bargaining, +10% trade income, halves next shock.</span>
+          <span class="acard__payoff mono">G77 · once</span>
+          <span class="acard__alloc mono" id="blocState">available</span>
+        </button>
+        <button class="acard acard--demand" id="cardDemand" type="button" data-key="4">
+          <span class="acard__key mono">4</span>
+          <span class="acard__name mono">DEMAND FAIRER TERMS</span>
+          <span class="acard__desc">At UNCTAD. Lifts commodity +12, halves decline 3 yrs. <span class="nonbind" id="nonbind">non-binding</span></span>
+          <span class="acard__payoff mono">needs barg ≥ 40</span>
+          <span class="acard__alloc mono" id="demandState">locked</span>
+        </button>
+      </div>
+
+      <div class="commit">
+        <button class="commit__btn mono" id="advanceBtn" type="button" disabled>ALLOCATE 5 LABOR TO ADVANCE ⏎</button>
+      </div>
+    </footer>
+
+    <!-- how-to-play tutorial (coach marks) -->
+    <div class="tut" id="tut" hidden>
+      <div class="tut__spot" id="tutSpot"></div>
+      <div class="tut__card" id="tutCard" role="dialog" aria-modal="true" aria-labelledby="tutTitle">
+        <p class="tut__step mono" id="tutStep">HOW TO PLAY · 1 / 6</p>
+        <h3 class="tut__title" id="tutTitle"></h3>
+        <p class="tut__body" id="tutBody"></p>
+        <div class="tut__nav">
+          <button class="tut__skip mono" id="tutSkip" type="button">Skip tutorial</button>
+          <div class="tut__navr">
+            <span class="tut__wait mono" id="tutWait" hidden>▸ your move</span>
+            <button class="tut__back mono" id="tutBack" type="button">Back</button>
+            <button class="tut__next mono" id="tutNext" type="button">Next</button>
+            <button class="tut__stepskip mono" id="tutStepSkip" type="button" hidden>Skip step ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- event card modal -->
+    <div class="event" id="event" hidden>
+      <div class="event__card" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+        <p class="event__stamp mono" id="eventStamp">EVENT</p>
+        <h3 class="event__title" id="eventTitle">Event</h3>
+        <p class="event__body" id="eventBody"></p>
+        <div class="event__choices" id="eventChoices"></div>
+        <p class="event__teach mono" id="eventTeach"></p>
+      </div>
+    </div>
+
+    <!-- game over / debrief dossier -->
+    <div class="over" id="over" hidden>
+      <div class="over__sheet" role="dialog" aria-modal="true" aria-labelledby="overRank">
+        <p class="over__doc mono">UNCTAD · POLICY DOSSIER · TERMS-OF-TRADE OUTCOME</p>
+        <div class="over__stamp" id="overStamp"><span class="over__rank mono" id="overRank">C</span><span class="over__rankname mono" id="overRankName">RESOURCE COLONY</span></div>
+        <p class="over__verdict" id="overVerdict"></p>
+        <dl class="over__stats mono" id="overStats"></dl>
+        <div class="over__copy" id="overCopy"></div>
+        <div class="over__actions">
+          <button class="over__btn over__btn--again mono" id="againBtn" type="button">▶ Play again</button>
+          <button class="over__btn over__btn--story mono" id="storyBtn" type="button">Return to story ↓</button>
+        </div>
+        <button class="over__skip mono" id="skipResultsBtn" type="button" hidden>skip to results</button>
+      </div>
+    </div>
+
+  </div><!-- /shell -->
+</div><!-- /game -->
+
+<!-- delta-chip + shake layer host -->
+<div class="fx" id="fx" aria-hidden="true"></div>
+
+<!-- GSAP for the two pinned beats only (§5.4, §5.5) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<!-- app · order matters: sim (model) before game; scroll last -->
+<script src="js/sim.js"></script>
+<script src="js/game.js"></script>
+<script src="js/scroll.js"></script>
+</body>
 </html>

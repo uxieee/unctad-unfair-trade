@@ -1,39 +1,46 @@
-# Unfair Trade — A UNCTAD Simulation
+# Unfair Trade — A report on UNCTAD
 
-A short browser game where you run a developing nation and experience **declining
-terms of trade** — the Prebisch-Singer thesis that underpins the founding mission
-of the United Nations Conference on Trade and Development (UNCTAD).
-
-You export one commodity. Each year its price drifts down while your import
-prices drift up. Just exporting more keeps you dependent and poor. The only real
-escape is to **diversify into manufacturing** and **demand fairer trade terms** —
-the path UNCTAD argues developing nations need support to take.
+A single-page **scrollytelling report** on UNCTAD (UN Trade and Development) with an
+embedded, playable economic simulation. You run a developing nation and *feel*
+**declining terms of trade** — the Prebisch-Singer thesis that underpins UNCTAD's
+founding mission — then read how UNCTAD has fought that fight since 1964.
 
 Built as an original way to present a class report on UNCTAD (Development, Trade,
-and Equity): the audience plays it on their own device, then sees the economic
-theory behind what just happened.
+and Equity): the audience scrolls the story and plays the simulation on their own
+device, then sees the economic theory behind what just happened.
 
-## How it's used
-- Delivered over Zoom: the play link is pasted in chat; the presenter
-  screen-shares a playthrough.
-- Solo play, no backend, no login — a static site that can't break mid-call.
-- Desktop-first and fully playable on mobile.
+## Structure (static, zero build)
 
-## Develop
-```bash
-npm install
-npm run dev      # local dev server
-npm test         # engine unit + balance tests (Vitest)
-npm run build    # production build to dist/
+```
+index.html        # the scrollytelling page + game markup
+css/styles.css    # full design system + game UI
+js/sim.js         # pure economy model + balance harness (run: node js/sim.js)
+js/game.js        # game controller (HUD, turns, events, debrief)
+js/scroll.js      # scrollytelling: reveals, pinned beats, the terms-of-trade spine
+favicon.svg
+docs/             # design brief, game-mechanics spec, build prompt, verified facts
 ```
 
-## Tech
-Plain HTML/CSS/JS bundled with Vite. Game logic (`src/engine.js`) is pure and
-unit-tested, kept separate from rendering (`src/ui.js`, `src/results.js`) so a
-shared-multiplayer mode can be added later without rewriting the core.
+Plain HTML/CSS/vanilla JS — no framework, no build step. Loads Google Fonts and
+GSAP (for two pinned scroll beats) from CDNs. Deploys to **Vercel** as a static
+site with zero config.
 
-Deploys to Vercel with zero config (framework preset: **Vite**).
+## Run locally
+```bash
+# any static server, e.g.
+python3 -m http.server 8000      # then open http://localhost:8000
+# verify the game economy is balanced:
+node js/sim.js                   # prints the balance harness table
+```
 
-## Roadmap
-- Shared multiplayer: one live session with a class leaderboard (requires a
-  realtime backend; deliberately deferred so solo play ships first).
+## How it's used
+- Delivered over Zoom: link shared in chat; presenter screen-shares and scrolls;
+  classmates play the simulation on their own phones/laptops.
+- Desktop-first and fully solid on mobile.
+
+## Provenance
+Design direction and game mechanics were produced by an expert-panel workflow
+(see `docs/design-brief.md`, `docs/game-mechanics.md`), compiled into a build
+prompt (`docs/build-prompt.md`), and implemented via claude.ai/design. Content is
+sourced from `docs/unctad-facts-verified.md`. The game's numbers are an
+illustrative simulation, not real UNCTAD data.
