@@ -64,20 +64,21 @@ Each year the player **allocates Labor (5 tokens)** between the two production a
 **B. BUILD INDUSTRY** — *the patience tax / escape (now with a real, grounded cost)*
 - Gross income: `+ Labor_build × (IndustrialCapacity / 100) × (MfgIndex / 100) × 27 × infantFactor`
 - **Infant-industry J-curve:** `infantFactor = 0.3 + 0.7 × min(1, IndustrialCapacity / 32)` — young industry earns only ~30% of its mature return (learning-by-doing; new factories are high-cost and uncompetitive until they scale).
-- **Capital-goods import bill (the foreign-exchange / two-gap constraint):** `− Labor_build × 2.7 × min(2.4, MfgIndex / CommodityIndex)`, paid in cash. Factories need **imported machines**, and you earn the foreign exchange to buy them by **exporting commodities**. The same scissor (mfg/commodity) that rots your export income makes those machines dearer — so the bill *rises* as your terms of trade decline. This is the Chenery–Bruno–Strout structuralist FX gap, and it is why a poor commodity exporter cannot simply "build its way out" for free.
+- **Capital-goods import bill (the foreign-exchange / two-gap constraint):** `− Labor_build × 3.0 × (MfgIndex / 100)`, paid in cash. Factories need **imported machines**, priced in (appreciating) world manufactures, and you earn the foreign exchange to buy them by **exporting commodities** first. Building from year 1 with no export FX simply **bleeds the treasury out** — you must run export years to bank the cash. This is the Chenery–Bruno–Strout structuralist FX gap, and it is why a poor commodity exporter cannot simply "build its way out" for free. *(Design note: an earlier version scaled the bill by MfgIndex/CommodityIndex — elegant, but it perversely rewarded never-exporting, since exporting craters your own commodity price and thus made your machines dearer. Scaling by MfgIndex alone keeps the FX cost real without inverting the lesson.)*
 - Side effect: **IndustrialCapacity += 6 × Labor_build / 5** (full allocation = +6/turn).
 - *Feel:* turn 1 at capacity 5, full build shows a **net −$11 on the button** (machines cost ~$14, infant output only ~$3). It *looks like a money-loser* next to export's glowing +$30. But capacity compounds and matures: the **net** build payoff crosses above export around **turn 5–6**, then snowballs. The valley of death is now real cash, not a rounding error.
 
 ### Strategic levers (one per year max)
 
-**C. JOIN REGIONAL BLOC** *(G77 / regional integration)* — once per game, costs **$30**
-- **+28 Bargaining Power**, **+10% to all trade income permanently**, **halves the next shock event's damage.**
-- The "stop the bleeding / set up the win" move — and the main source of the leverage you need to ever demand fairer terms.
+**C. JOIN REGIONAL BLOC** *(G77 / regional integration)* — once per game, costs **$48**
+- **+26 Bargaining Power**, **+10% to all trade income permanently**, **softens price shocks (halved).**
+- The "stop the bleeding / set up the win" move — and the main source of the leverage you need to ever demand fairer terms. Costs **$48**, which you can only afford after a few **export** years — so the bloc itself enforces the FX bridge (you can't buy collective leverage without first earning export income).
 
-**D. DEMAND FAIRER TERMS AT UNCTAD** — repeatable, **requires Bargaining ≥ 40**
-- On use: **CommodityIndex +14 immediately**, and **commodity drift is halved for the next 3 turns** (the price floor).
-- Bargaining is now decoupled from building (you gain only ~0.8/turn from industry, ~0.4/turn from trade) — so the gate genuinely bites: you must **join a bloc** (or catch a G77 event) to unlock it. Industry alone never earns the leverage to defend its own terms of trade — which is exactly why pure-build caps at Rank B.
-- If Bargaining < 40, the button is visibly **locked** with tooltip "You need leverage first — build it through blocs and diversification." (Teaches: advocacy needs power.)
+**D. DEMAND FAIRER TERMS AT UNCTAD** — repeatable, **requires Bargaining ≥ 40**, and **SPENDS 5 Bargaining each time**
+- On use: **CommodityIndex +18 immediately**, and **commodity drift is halved for the next 4 turns** (the price floor).
+- **Each demand spends 5 leverage** — political capital you must rebuild (through industry, blocs, G77 solidarity) before you can push again. This makes leverage a scarce, managed resource: you fire ~2–4 deliberate demands a game, never a spam that pins prices high. It models UNCTAD's *non-binding, costly* advocacy: influence has to be spent and re-earned.
+- Bargaining is decoupled from building (you gain ~1.4/turn from industry, ~0.4/turn from trade) — so the gate genuinely bites: you must **join a bloc** (or catch a G77 event) to unlock it. Industry alone never earns the leverage to defend its own terms of trade — which is exactly why pure-build caps at Rank B.
+- If Bargaining < 40, the button is visibly **locked**. (Teaches: advocacy needs power.)
 - Models UNCTAD's *non-binding* reality: it **dampens** decline, never eliminates it.
 
 ---
@@ -131,24 +132,30 @@ Each run draws ~3–4 cards from the 8 → high divergence, every card tagged to
 
 ## 7. Win / Lose & Scoring
 
-**Hard lose (instant):** Treasury ≤ 0 → screen desaturates → **"DEBT CRISIS."**
+**The outcome is binary, shown as a banner on the debrief:** **✓ YOU ESCAPED THE TRAP** (ranks A/S) or **✗ YOU DID NOT ESCAPE** (ranks F/C/B). The 5 tiers below are the *flavour/reason* behind that verdict — escaping the terms-of-trade trap is the win; everything else is a degree of losing.
+
+**Two hard-lose conditions (instant, end the run):**
+- **Treasury ≤ 0 → "Debt Crisis."** Upkeep + import bills drained you to zero.
+- **CommodityIndex ≤ 0 → "Terms-of-Trade Collapse."** Your terms of trade hit rock bottom — the economy falls into crisis *even if you have cash*. A pure exporter drives commodity to 0 by year 12 and collapses here (a dramatic F, not a gentle C). Telegraphed: a red ticker warning fires once commodity < 22.
 
 **End of Year 12 — final score:**
 ```
 Score = Treasury + (IndustrialCapacity × 4) + (BargainingPower × 2) + max(0, CommodityIndex − 50)
 ```
 
+**The WIN condition IS the lesson — you must engage BOTH UNCTAD pillars.** "Escaping" (rank A/S) requires you to have *diversified* (capacity ≥ 50) **AND** *used collective leverage* (joined a bloc **and** actually fired DEMAND FAIRER TERMS at least twice). Industry alone, however deep, can never win — it caps at B. This is shown live in the HUD as an **ESCAPE checklist** (`○ industry · ○ bloc · ○ demand 0/2`) that ticks green as you meet each, so the verdict never feels arbitrary.
+
 **Rank card (stamped, names *why*):**
 
-| Rank | Condition | Stamp copy |
-|---|---|---|
-| **F — Collapse** | Treasury hit 0 | "You exported your way to ruin." |
-| **C — Resource Colony** | Capacity < 30 | "Still digging and shipping. The terms of trade ate your gains." |
-| **B — Emerging Economy** | Capacity ≥ 30, Score < 700 | "You started to break out. Not fast enough." |
-| **A — Diversified Nation** | Capacity ≥ 50 AND CommodityIndex ≥ 55, Score ≥ 700 | "You added value and weathered the squeeze." |
-| **S — Geneva Consensus** | Capacity ≥ 50 AND Bargaining ≥ 60 AND Score ≥ 1000 | "You diversified AND demanded fairer terms. This is what UNCTAD fights for." |
+| Rank | Verdict | Condition | Stamp copy |
+|---|---|---|---|
+| **F — Debt Crisis / Terms-of-Trade Collapse** | **LOSE** | Treasury hit 0, or commodity hit 0 | flavour by cause (bankruptcy vs. collapse) |
+| **C — Resource Colony** | **LOSE** | Capacity < 30 | "You stayed a raw-commodity exporter… You did not escape." |
+| **B — Emerging Economy** | **LOSE** | Capacity ≥ 30 but didn't engage both pillars | "You built some industry — but never earned the leverage to defend your prices. You did not escape." |
+| **A — Diversified Nation** | **WIN** | Capacity ≥ 50 AND bloc joined AND ≥ 2 demands AND commodity ≥ 45 | "You added value and weathered the squeeze. You escaped the trap." |
+| **S — Geneva Consensus** | **WIN** | Capacity ≥ 55 AND bloc AND **≥ 3 demands** AND commodity ≥ 80 AND score ≥ 640 | "You diversified AND demanded fairer terms. This is what UNCTAD fights for." |
 
-A pure-exporter **cannot exceed C** — mathematically capped by the falling index. The top tier **requires both pillars** (capacity + bargaining), exactly UNCTAD's prescription.
+A pure-exporter **collapses (F)**. Mindless **pure-build** (no bloc, no demand) industrialises but never engages leverage → **B, a clear LOSE — and it can no longer fluke into a win on lucky events**, because the win is gated on *actions taken*, not on a commodity number events can nudge. Building from year 1 with **no export FX** to fund the machine imports now **bleeds out and dies** (the old "bloc-turn-1" exploit is gone). The only path to A/S is the real development sequence: **export to bank foreign exchange → pivot into industry → join a bloc → repeatedly demand fairer terms** — diversification *and* leverage, exactly UNCTAD's prescription. The debrief's hook and CTA adapt to win vs. lose so the narration never contradicts the verdict.
 
 ---
 

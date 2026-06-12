@@ -27,10 +27,11 @@
     'tankTreasury','valTreasury','tankCap','valCap','tankBarg','valBarg',
     'heroTreasury','beamBar','gchartSvg','gchartGrid','gchartGap','gchartMfg','gchartCom','gchartDots',
     'mfgVal','comVal','ticker','tickerText','workforce','wfPeople','laborCount','laborHint','helpBtn',
+    'escInd','escBloc','escDemand',
     'tut','tutSpot','tutCard','tutStep','tutTitle','tutBody','tutSkip','tutBack','tutNext','tutWait','tutStepSkip',
     'cardExport','cardBuild','cardBloc','cardDemand','exportPayoff','buildPayoff','buildImport','exportAlloc','buildAlloc','resetWorkers',
     'blocState','demandState','advanceBtn','event','eventStamp','eventTitle','eventBody','eventChoices','eventTeach',
-    'over','overStamp','overRank','overRankName','overVerdict','overStats','overCopy','againBtn','storyBtn','fx','hudBottom'];
+    'over','overOutcome','overStamp','overRank','overRankName','overVerdict','overStats','overCopy','againBtn','storyBtn','fx','hudBottom'];
 
   // ---- run state ----
   var s, alloc, laborPool, deck, queuedEvent, seed, muted, started=false, savedScrollY=0, prevCommodity, prevMfg, ranOnce=false;
@@ -149,6 +150,15 @@
     // saturation (earned by good play) on decorative layer only
     var sat=M.clamp(0.15 + (s.capacity/100)*0.85 + Math.max(0,s.commodityIndex-50)/160, 0, 1.2);
     el.game.style.setProperty('--sat', sat.toFixed(2));
+    renderEscape();
+  }
+  // visible WIN condition: escape = diversify (cap≥50) AND collective leverage (bloc + 2 demands)
+  function renderEscape(){
+    if(!el.escInd) return;
+    function set(node,done,label){ node.textContent=(done?'● ':'○ ')+label; node.classList.toggle('is-done',!!done); }
+    set(el.escInd, s.capacity>=50, 'industry');
+    set(el.escBloc, s.flags.bloc, 'bloc');
+    set(el.escDemand, s.demandsFired>=2, 'demand '+Math.min(s.demandsFired,2)+'/2');
   }
   function setTank(fillId,valId,pct,txt){
     var f=el[fillId]; pct=M.clamp(pct,0,100);
@@ -173,15 +183,15 @@
     // build NET can be negative early (imported machines cost more than infant-industry output) — that IS the lesson
     el.cardBuild.classList.toggle('is-loss', pb<0);
     if(el.buildImport) el.buildImport.textContent='machines −$'+Math.round(pi);
-    // bloc
+    // bloc — affordable only if treasury covers the cost AFTER this year's upkeep
     if(s.flags.bloc){ el.cardBloc.classList.add('is-locked'); el.blocState.textContent='✓ joined'; }
     else if(alloc.lever==='bloc'){ el.cardBloc.classList.remove('is-locked'); el.blocState.textContent='✓ SELECTED · joins on advance'; }
-    else { el.cardBloc.classList.toggle('is-locked', s.treasury<M.C.BLOC_COST); el.blocState.textContent = s.treasury<M.C.BLOC_COST?'need $30':'available'; }
-    // demand gate
+    else { var aff=blocAffordable(); el.cardBloc.classList.toggle('is-locked', !aff); el.blocState.textContent = aff?'available':('need $'+(M.C.BLOC_COST+M.C.UPKEEP)); }
+    // demand gate — costs leverage to fire, so it can't be spammed
     var unlocked=s.bargaining>=M.C.DEMAND_GATE;
     el.cardDemand.classList.toggle('is-locked',!unlocked);
     if(alloc.lever==='demand'){ el.demandState.textContent='✓ SELECTED · fires on advance'; }
-    else el.demandState.textContent = unlocked? (s.flags.nieo?'NIEO ×2 ready':'ready') : 'locked · barg '+Math.round(s.bargaining)+'/40';
+    else el.demandState.textContent = unlocked? (s.flags.nieo?'NIEO ×2 ready':'ready · −'+M.C.DEMAND_COST_BARG+' leverage') : 'locked · barg '+Math.round(s.bargaining)+'/'+M.C.DEMAND_GATE;
     ensureLockTip();
   }
   function ensureLockTip(){
@@ -290,8 +300,11 @@
     var tele=rollNext();
     var msg = recap || yearHeadline();
     if(tele) msg += '  ·  Heads-up: '+tele+' next year.';
-    toast(msg, !!tele);
+    msg += dangerNote();
+    toast(msg, !!tele || s.commodityIndex<22);
   }
+  // collapse alarm — appended to whatever recap shows, so it can't be missed (and shows on event years too, via closeEvent)
+  function dangerNote(){ return s.commodityIndex<22 ? '  ·  ⚠ TERMS OF TRADE NEAR COLLAPSE — if commodity prices hit zero the economy falls. Build industry and demand fairer terms now.' : ''; }
   // plain-language summary of the year that just resolved
   function explainTurn(before, bk){
     var lived=M.C.START_YEAR + s.year - 2;
@@ -307,6 +320,7 @@
   }
   function yearHeadline(){
     var y=M.C.START_YEAR+s.year-1;
+    if(s.commodityIndex<22) return y+'. ⚠ TERMS OF TRADE NEAR COLLAPSE. If commodity prices hit zero, your economy falls. Build industry and demand fairer terms — fast.';
     if(s.commodityIndex<55) return y+'. Buyers offer less for the same harvest. The squeeze is on.';
     if(s.capacity>=40) return y+'. Your factories are humming. Keep climbing.';
     return y+'. Markets steady. Choose your moves.';
@@ -406,7 +420,8 @@
   function closeEvent(){
     el.event.hidden=true;
     var tele=rollNext();
-    toast(tele ? ('The event resolved. Heads-up: '+tele+' next year.') : (yearHeadline()+' Assign your workers.'), !!tele);
+    var msg=(tele ? ('The event resolved. Heads-up: '+tele+' next year.') : (yearHeadline()+' Assign your workers.')) + dangerNote();
+    toast(msg, !!tele || s.commodityIndex<22);
     renderMeters(); renderPayoffs(false); renderLabor(); el.advanceBtn.focus();
   }
 
@@ -414,18 +429,24 @@
   function endGame(){
     if(el.tut && !el.tut.hidden){ tutEnd(); }   // dismiss any lingering tutorial before the debrief
     var r=M.rank(s), info=M.RANKS[r], sc=M.model? M.score(s):0; sc=M.score(s);
-    var win=(r==='A'||r==='S');
+    var win=(M.outcome? M.outcome(s)==='win' : (r==='A'||r==='S'));
+    // death flavour: terms-of-trade collapse vs debt crisis
+    var name=info.name, copy=info.copy;
+    if(r==='F' && s.deadReason && M.DEATHS && M.DEATHS[s.deadReason]){ name=M.DEATHS[s.deadReason].name; copy=M.DEATHS[s.deadReason].copy; }
     el.game.classList.toggle('is-dead', r==='F');
     el.game.classList.toggle('is-win', win);
     if(r==='F'){ badShake(); blip('shock'); } else if(win){ blip('boom'); }
-    el.overStamp.setAttribute('data-rank',r); el.overRank.textContent=r; el.overRankName.textContent=info.name;
+    // binary verdict banner — the clear WIN / LOSE the whole game builds toward
+    el.overOutcome.textContent = win ? '✓ YOU ESCAPED THE TRAP' : '✗ YOU DID NOT ESCAPE';
+    el.overOutcome.className = 'over__outcome mono '+(win?'is-win':'is-lose');
+    el.overStamp.setAttribute('data-rank',r); el.overRank.textContent=r; el.overRankName.textContent=name;
     el.overStamp.classList.remove('is-thunk');
-    el.overVerdict.textContent='“'+info.copy+'”';
+    el.overVerdict.textContent='“'+copy+'”';
     el.overStats.innerHTML=
       stat('Treasury',money(s.treasury))+stat('Industrial capacity',Math.round(s.capacity)+'%')+
       stat('Bargaining power',Math.round(s.bargaining))+stat('Commodity index',Math.round(s.commodityIndex))+
       stat('Final score',sc)+stat('Year reached',(M.C.START_YEAR+Math.min(s.year,12)-1));
-    el.overCopy.innerHTML=DOSSIER;
+    el.overCopy.innerHTML=dossierLead(win)+DOSSIER_BODY+dossierCTA(win,r);
     // best score
     var best=parseInt(lsGet('ut_best')||'0',10);
     if(sc>best){ lsSet('ut_best',String(sc)); lsSet('ut_bestrank',r); best=sc; }
@@ -439,14 +460,28 @@
   }
   function stat(k,v){ return '<div><dt>'+k+'</dt><dd>'+v+'</dd></div>'; }
 
-  var DOSSIER =
-    '<p class="lead">You watched your best move stop working.</p>'+
+  var DOSSIER_BODY =
     '<p>That\u2019s the Prebisch-Singer thesis: raw-commodity prices fall over time against manufactured goods, so commodity exporters\u2019 terms of trade steadily decline.</p>'+
     '<p>Today <strong>95 of 143</strong> developing economies are commodity-dependent, including over <strong>80%</strong> of the Least Developed Countries. Exporting more raw goods only deepens the dependence.</p>'+
     '<p>The way out is the way you won, or didn\u2019t: <strong>diversify into manufacturing to add value, and demand fairer terms from a position of collective strength.</strong></p>'+
     '<p>This is the work of <strong>UNCTAD, UN Trade and Development</strong>, founded in Geneva in 1964 under economist Raúl Prebisch. 195 members; three pillars: research, consensus-building, technical cooperation.</p>'+
     '<p>But UNCTAD has no enforcement power. Unlike the WTO, its influence is analytical and diplomatic. That\u2019s why, here and in reality, fairer terms required leverage, not just a demand. From the 1974 New International Economic Order to the 2025 Geneva Consensus, the fight goes on.</p>'+
-    '<p class="lead">Most first-timers score a C. Try again. Diversify earlier.</p>';
+    '';
+
+  // outcome-specific opening hook + closing CTA wrapped around the shared body
+  function dossierLead(win){
+    return win
+      ? '<p class="lead">You felt your raw exports weaken year after year — and you beat the squeeze anyway.</p>'
+      : '<p class="lead">You watched your best move stop working.</p>';
+  }
+  function dossierCTA(win, r){
+    var t = (r==='S')
+      ? 'You reached the <strong>Geneva Consensus</strong> — the top outcome, exactly what UNCTAD fights for. Few players get here.'
+      : win
+        ? 'You escaped — most first-timers don’t. Now reach for the <strong>Geneva Consensus</strong>: diversify AND demand fairer terms from real strength.'
+        : 'Most first-timers don’t escape. Try again — <strong>diversify earlier, and earn the leverage to defend your prices.</strong>';
+    return '<p class="lead">'+t+'</p>';
+  }
 
   // ============================ TUTORIAL (interactive walkthrough) ============================
   // Steps with `do` are hands-on: the spotlight waits until the player performs the action.
@@ -539,6 +574,7 @@
     setTimeout(startTutorial,140);
   }
   function quit(toStory){
+    if(el.tut && !el.tut.hidden){ tutEnd(); }   // don't leave the tutorial poller running after quit
     el.game.hidden=true; el.game.setAttribute('aria-hidden','true');
     document.body.classList.remove('is-playing'); document.body.style.top='';
     if(toStory){
@@ -567,17 +603,19 @@
   }
   function clearWorkers(){ alloc.ex=0; alloc.build=0; renderLabor(); toast('Workers reset. Send them to the field or the factory.'); }
   function clearAlloc(){ alloc.ex=0; alloc.build=0; alloc.lever=null; renderLabor(); }
+  // affordable only if treasury covers the bloc cost AFTER upkeep is taken at advance
+  function blocAffordable(){ return s.treasury >= M.C.BLOC_COST + M.C.UPKEEP; }
   function toggleLever(which){
     if(which==='bloc'){
       if(s.flags.bloc){ toast('You have already joined a bloc. It is permanent.'); return; }
-      if(s.treasury<M.C.BLOC_COST){ toast('You need $30 in the treasury to join a bloc.'); return; }
+      if(!blocAffordable()){ toast('You need $'+(M.C.BLOC_COST+M.C.UPKEEP)+' in the treasury to join a bloc (the $'+M.C.BLOC_COST+' fee plus this year’s upkeep). Export to earn it.', true); return; }
       alloc.lever=alloc.lever==='bloc'?null:'bloc';
-      toast(alloc.lever==='bloc'?'Regional bloc selected. It costs $30 and joins when you advance the year. You still need to assign all 5 workers.':'Bloc selection cancelled.');
+      toast(alloc.lever==='bloc'?('Regional bloc selected. It costs $'+M.C.BLOC_COST+' and joins when you advance the year. You still need to assign all '+laborPool+' workers.'):'Bloc selection cancelled.');
     }
     if(which==='demand'){
-      if(s.bargaining<M.C.DEMAND_GATE){ toast('Not enough leverage yet. Build bargaining power to 40 first (join a bloc, keep building industry).', true); return; }
+      if(s.bargaining<M.C.DEMAND_GATE){ toast('Not enough leverage yet. Build bargaining power to '+M.C.DEMAND_GATE+' first (join a bloc, keep building industry).', true); return; }
       alloc.lever=alloc.lever==='demand'?null:'demand';
-      toast(alloc.lever==='demand'?'Demand for fairer terms selected. It fires when you advance the year.':'Demand cancelled.');
+      toast(alloc.lever==='demand'?('Demand for fairer terms selected. It lifts commodity prices but spends '+M.C.DEMAND_COST_BARG+' leverage — you’ll need to rebuild it before demanding again.'):'Demand cancelled.');
     }
     renderPayoffs(false); renderLabor();
   }

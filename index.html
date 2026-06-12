@@ -260,6 +260,12 @@
       <div class="hud-top__turn">
         <span class="mono pips__lab">TURN <span id="turnNum">1</span> / 12</span>
         <div class="pips" id="pips" aria-hidden="true"></div>
+        <div class="escape" id="escape" title="To ESCAPE the trap (win) you must diversify AND use collective leverage: build industry, join a bloc, and demand fairer terms at least twice.">
+          <span class="escape__lab mono">ESCAPE</span>
+          <span class="escape__item mono" id="escInd">○ industry</span>
+          <span class="escape__item mono" id="escBloc">○ bloc</span>
+          <span class="escape__item mono" id="escDemand">○ demand 0/2</span>
+        </div>
       </div>
       <div class="hud-top__ctrl">
         <button class="iconbtn mono" id="helpBtn" type="button" title="How to play">?</button>
@@ -368,14 +374,14 @@
         <button class="acard acard--bloc" id="cardBloc" type="button" data-key="3">
           <span class="acard__key mono">3</span>
           <span class="acard__name mono">JOIN REGIONAL BLOC</span>
-          <span class="acard__desc">−$30 once. +28 bargaining, +10% trade income, halves next shock.</span>
+          <span class="acard__desc">−$48 once. +26 bargaining, +10% trade income, softens price shocks.</span>
           <span class="acard__payoff mono">G77 · once</span>
           <span class="acard__alloc mono" id="blocState">available</span>
         </button>
         <button class="acard acard--demand" id="cardDemand" type="button" data-key="4">
           <span class="acard__key mono">4</span>
           <span class="acard__name mono">DEMAND FAIRER TERMS</span>
-          <span class="acard__desc">At UNCTAD. Lifts commodity +14, halves decline 3 yrs. <span class="nonbind" id="nonbind">non-binding</span></span>
+          <span class="acard__desc">At UNCTAD. Lifts commodity +18, halves decline 4 yrs — but spends 5 leverage. <span class="nonbind" id="nonbind">non-binding</span></span>
           <span class="acard__payoff mono">needs barg ≥ 40</span>
           <span class="acard__alloc mono" id="demandState">locked</span>
         </button>
@@ -420,6 +426,7 @@
     <div class="over" id="over" hidden>
       <div class="over__sheet" role="dialog" aria-modal="true" aria-labelledby="overRank">
         <p class="over__doc mono">UNCTAD · POLICY DOSSIER · TERMS-OF-TRADE OUTCOME</p>
+        <p class="over__outcome mono" id="overOutcome"></p>
         <div class="over__stamp" id="overStamp"><span class="over__rank mono" id="overRank">C</span><span class="over__rankname mono" id="overRankName">RESOURCE COLONY</span></div>
         <p class="over__verdict" id="overVerdict"></p>
         <dl class="over__stats mono" id="overStats"></dl>
