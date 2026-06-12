@@ -353,28 +353,29 @@
         <button class="acard acard--export" id="cardExport" type="button" data-key="1">
           <span class="acard__key mono">1</span>
           <span class="acard__name mono">EXPORT COMMODITIES</span>
-          <span class="acard__desc">Sell the harvest. Fast money that floods your own market.</span>
+          <span class="acard__desc">Sell the harvest. Fast money — and the foreign exchange that pays for machines.</span>
           <span class="acard__payoff mono" id="exportPayoff">+$0</span>
           <span class="acard__alloc mono" id="exportAlloc">0 labor</span>
         </button>
         <button class="acard acard--build" id="cardBuild" type="button" data-key="2">
           <span class="acard__key mono">2</span>
           <span class="acard__name mono">BUILD INDUSTRY</span>
-          <span class="acard__desc">Add value. Slow now; it compounds and earns leverage.</span>
+          <span class="acard__desc">Add value. Needs imported machines now; it compounds later.</span>
           <span class="acard__payoff mono" id="buildPayoff">+$0</span>
+          <span class="acard__import mono" id="buildImport"></span>
           <span class="acard__alloc mono" id="buildAlloc">0 labor</span>
         </button>
         <button class="acard acard--bloc" id="cardBloc" type="button" data-key="3">
           <span class="acard__key mono">3</span>
           <span class="acard__name mono">JOIN REGIONAL BLOC</span>
-          <span class="acard__desc">−$30 once. +25 bargaining, +10% trade income, halves next shock.</span>
+          <span class="acard__desc">−$30 once. +28 bargaining, +10% trade income, halves next shock.</span>
           <span class="acard__payoff mono">G77 · once</span>
           <span class="acard__alloc mono" id="blocState">available</span>
         </button>
         <button class="acard acard--demand" id="cardDemand" type="button" data-key="4">
           <span class="acard__key mono">4</span>
           <span class="acard__name mono">DEMAND FAIRER TERMS</span>
-          <span class="acard__desc">At UNCTAD. Lifts commodity +12, halves decline 3 yrs. <span class="nonbind" id="nonbind">non-binding</span></span>
+          <span class="acard__desc">At UNCTAD. Lifts commodity +14, halves decline 3 yrs. <span class="nonbind" id="nonbind">non-binding</span></span>
           <span class="acard__payoff mono">needs barg ≥ 40</span>
           <span class="acard__alloc mono" id="demandState">locked</span>
         </button>
@@ -427,7 +428,6 @@
           <button class="over__btn over__btn--again mono" id="againBtn" type="button">▶ Play again</button>
           <button class="over__btn over__btn--story mono" id="storyBtn" type="button">Return to story ↓</button>
         </div>
-        <button class="over__skip mono" id="skipResultsBtn" type="button" hidden>skip to results</button>
       </div>
     </div>
 

@@ -416,8 +416,11 @@ a{color:inherit;}
 .acard--bloc .acard__name{color:var(--brass);}
 .acard--demand .acard__name{color:var(--un-blue);}
 .acard__desc{font-family:var(--f-body);font-size:.74rem;line-height:1.35;color:var(--cold-tin);max-width:none;margin:0;}
-.acard__payoff{font-size:clamp(.9rem,1.5vw,1.15rem);font-weight:500;color:#fff;}
+.acard__payoff{font-size:clamp(.9rem,1.5vw,1.15rem);font-weight:500;color:#fff;transition:color .3s;}
 .acard--export .acard__payoff{color:var(--brass);transition:color .3s;}
+.acard--build .acard__payoff{color:var(--verdant);}
+.acard--build.is-loss .acard__payoff{color:#d4574a;}
+.acard__import{font-size:.6rem;letter-spacing:.05em;color:#b0533f;text-transform:uppercase;opacity:.85;}
 .acard__alloc{font-size:.66rem;letter-spacing:.06em;color:var(--cold-tin);text-transform:uppercase;}
 .acard[aria-pressed="true"]{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.22),inset 1px 1px 0 rgba(255,255,255,.06);}
 .acard--bloc[aria-pressed="true"]{border-color:var(--brass);box-shadow:0 0 0 2px rgba(242,183,5,.45);}
@@ -439,7 +442,7 @@ a{color:inherit;}
 .commit__btn:disabled{background:#2A3038;color:var(--cold-tin);cursor:not-allowed;}
 
 /* event modal */
-.event{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(8,18,28,.7);backdrop-filter:blur(2px);padding:18px;}
+.event{position:absolute;inset:0;z-index:60;display:grid;place-items:center;background:rgba(8,18,28,.7);backdrop-filter:blur(2px);padding:18px;}
 .event[hidden]{display:none;}
 .event__card{max-width:480px;background:var(--slate-sea);border:1px solid var(--cold-tin);border-radius:12px;padding:clamp(18px,3vw,30px);
   box-shadow:0 30px 80px -30px #000;animation:stamp .4s var(--ease-reveal);}
@@ -455,7 +458,7 @@ a{color:inherit;}
 .event__teach{font-size:.72rem;color:var(--cold-tin);letter-spacing:.04em;border-top:1px solid #2A3038;padding-top:.8rem;}
 
 /* game over dossier */
-.over{position:absolute;inset:0;z-index:30;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+.over{position:absolute;inset:0;z-index:70;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
   background:rgba(8,18,28,.86);padding:max(18px,4vh) 18px;}
 .over[hidden]{display:none;}
 .over__sheet{max-width:560px;width:100%;background:var(--parchment);color:var(--ink);border-radius:10px;

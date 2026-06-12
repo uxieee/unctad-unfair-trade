@@ -61,19 +61,22 @@ Each year the player **allocates Labor (5 tokens)** between the two production a
 - Builds nothing.
 - *Feel:* turn 1 at index 100, 5 tokens = **+$30**. Glorious. By turn 8 at index ~62, the same 5 tokens = **~+$19** and falling. The button visibly weakens.
 
-**B. BUILD INDUSTRY** — *the patience tax / escape*
-- Income: `+ Labor_build × (IndustrialCapacity / 100) × (MfgIndex / 100) × 22`
+**B. BUILD INDUSTRY** — *the patience tax / escape (now with a real, grounded cost)*
+- Gross income: `+ Labor_build × (IndustrialCapacity / 100) × (MfgIndex / 100) × 27 × infantFactor`
+- **Infant-industry J-curve:** `infantFactor = 0.3 + 0.7 × min(1, IndustrialCapacity / 32)` — young industry earns only ~30% of its mature return (learning-by-doing; new factories are high-cost and uncompetitive until they scale).
+- **Capital-goods import bill (the foreign-exchange / two-gap constraint):** `− Labor_build × 2.7 × min(2.4, MfgIndex / CommodityIndex)`, paid in cash. Factories need **imported machines**, and you earn the foreign exchange to buy them by **exporting commodities**. The same scissor (mfg/commodity) that rots your export income makes those machines dearer — so the bill *rises* as your terms of trade decline. This is the Chenery–Bruno–Strout structuralist FX gap, and it is why a poor commodity exporter cannot simply "build its way out" for free.
 - Side effect: **IndustrialCapacity += 6 × Labor_build / 5** (full allocation = +6/turn).
-- *Feel:* turn 1 at capacity 5, full build = **~+$5**. Feels terrible vs. export's $30. But capacity compounds: by turn 7 (capacity ~40, Mfg ~112) full build ≈ **+$108/turn** and *rising* while export sinks. This is the deliberate valley-of-death crossover around **turn 5–6**.
+- *Feel:* turn 1 at capacity 5, full build shows a **net −$11 on the button** (machines cost ~$14, infant output only ~$3). It *looks like a money-loser* next to export's glowing +$30. But capacity compounds and matures: the **net** build payoff crosses above export around **turn 5–6**, then snowballs. The valley of death is now real cash, not a rounding error.
 
 ### Strategic levers (one per year max)
 
 **C. JOIN REGIONAL BLOC** *(G77 / regional integration)* — once per game, costs **$30**
-- **+25 Bargaining Power**, **+10% to all trade income permanently**, **halves the next shock event's damage.**
-- The "stop the bleeding / set up the win" move.
+- **+28 Bargaining Power**, **+10% to all trade income permanently**, **halves the next shock event's damage.**
+- The "stop the bleeding / set up the win" move — and the main source of the leverage you need to ever demand fairer terms.
 
 **D. DEMAND FAIRER TERMS AT UNCTAD** — repeatable, **requires Bargaining ≥ 40**
-- On use: **CommodityIndex +12 immediately**, and **commodity drift is halved for the next 3 turns** (the price floor).
+- On use: **CommodityIndex +14 immediately**, and **commodity drift is halved for the next 3 turns** (the price floor).
+- Bargaining is now decoupled from building (you gain only ~0.8/turn from industry, ~0.4/turn from trade) — so the gate genuinely bites: you must **join a bloc** (or catch a G77 event) to unlock it. Industry alone never earns the leverage to defend its own terms of trade — which is exactly why pure-build caps at Rank B.
 - If Bargaining < 40, the button is visibly **locked** with tooltip "You need leverage first — build it through blocs and diversification." (Teaches: advocacy needs power.)
 - Models UNCTAD's *non-binding* reality: it **dampens** decline, never eliminates it.
 
@@ -102,6 +105,8 @@ mfgIndex = clamp(mfgIndex, 0, 200);
 ```
 
 **Why it's a trap, in one sentence:** export income scales with `CommodityIndex/100`, but exporting *lowers* CommodityIndex while building *nothing* that slows the structural drift — so the only lever that reduces drift is **IndustrialCapacity**, and the only lever that lifts the index back up is **UNCTAD (gated behind Bargaining)**. Linear export gains can never outrun a compounding index decline. The scissor *always* opens for a pure exporter.
+
+**Why it's not a free escape, either (the grounding fix):** industrializing isn't costless. Building imports machines paid in foreign exchange you earn *from exports*, and the bill rises as your terms of trade fall (the FX gap); young industry pays a fraction of its mature return (infant-industry J-curve); and the leverage to *defend* your prices comes from blocs and solidarity, not from factories. So the real winning line is the actual development sequence: **export early to bank the foreign exchange → pivot that FX into industry before the squeeze → join a bloc for leverage → demand fairer terms to hold your prices while capacity matures.** Export is a genuine, rational bridge — which is exactly why it's a seductive trap when you lean on it one year too long.
 
 ---
 
@@ -155,15 +160,18 @@ A pure-exporter **cannot exceed C** — mathematically capped by the falling ind
 - **Years 7–9 (Pivot or Pit):** Industry income snowballs ($100+/turn); pure exporters stall. UNCTAD lever comes online for the prepared. *Comeback vs. spiral.*
 - **Years 10–12 (Verdict):** Compounding decides it.
 
-**Target outcomes (tune to hit these):**
-- **Pure-export spam:** ends Year 12 around **Treasury ~250–350, Capacity 5** → **Rank C**, never higher. Often flirts with debt after a crash. *"Just export" loses.*
-- **Naive diversify-only (no levers):** survives, ~**Rank B**.
-- **Smart line** (diversify turns 1–4 weathering the dip → join bloc ~turn 4 → build Bargaining → time UNCTAD demand onto a Price Crash): a first-timer playing well **barely reaches A**; near-optimal play with good event luck reaches **S**.
-- **Crossover point** (build > export per-turn income) must land at **turn 5–6** — verify in a spreadsheet pass; if it's later than turn 7, raise the Build multiplier (22→24) or capacity gain (6→7).
+**Target outcomes (verified by the `node js/sim.js` balance harness, seed 12345):**
+- **Pure-export spam:** Commodity index → 0; ends **Rank C**, never higher. *"Just export" loses.*
+- **Pure-build-from-turn-1 (no bridge, no leverage):** real early jeopardy — treasury bleeds to a **~$44 floor** in years 3–4 (a Price Crash there can kill you), because there's no export FX to fund the machine imports. Industrialises, but with no bloc it never earns the bargaining to defend its terms of trade → capped at **Rank B**. *Industry alone isn't enough.*
+- **Bridge (the real development sequence):** export turns 1–3 to bank foreign exchange → pivot to industry + join a bloc ~turn 4 → demand fairer terms once Bargaining ≥ 40 → **Rank A** (verified live: cap 58, commodity 157, score ~700).
+- **Optimal (tight pivot, both pillars, demand timing):** **Rank A → S** with good event luck (G77 solidarity / GSP push Bargaining ≥ 60 and score ≥ 1000).
+- **Passive (no allocation):** treasury bleeds → **Rank F**.
+- **NET crossover** (net build payoff > export payoff, *after* the import bill) lands at **turn 5–6**.
 
-**Balance guardrails:**
-- Diversifying *too* hard turns 1–2 (all 5 Labor to build, $0 income) risks an early-event debt spiral — that's intended *tension*, not a softlock; starting Treasury 100 gives ~2 turns of runway.
-- Bloc's $30 cost + 10% income bump must pay back by ~turn 8.
+**Balance guardrails (the harness asserts all of these on every run):**
+- Pure-build's early treasury floor must stay **under ~$45** — real tension, not a softlock; starting Treasury 100 + early export FX is the intended runway.
+- The bloc + demand path is the *only* route past Rank B, so the top ranks genuinely require **both** UNCTAD pillars (industry **and** leverage).
+- If the NET crossover drifts past turn 7, raise `BUILD_MULT` or lower `IMPORT_BASE`; if pure-build stops dipping below $45, deepen the infant J-curve (`INFANT_FLOOR`) or raise `IMPORT_BASE`.
 
 ---
 

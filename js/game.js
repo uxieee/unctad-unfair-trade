@@ -28,9 +28,9 @@
     'heroTreasury','beamBar','gchartSvg','gchartGrid','gchartGap','gchartMfg','gchartCom','gchartDots',
     'mfgVal','comVal','ticker','tickerText','workforce','wfPeople','laborCount','laborHint','helpBtn',
     'tut','tutSpot','tutCard','tutStep','tutTitle','tutBody','tutSkip','tutBack','tutNext','tutWait','tutStepSkip',
-    'cardExport','cardBuild','cardBloc','cardDemand','exportPayoff','buildPayoff','exportAlloc','buildAlloc','resetWorkers',
+    'cardExport','cardBuild','cardBloc','cardDemand','exportPayoff','buildPayoff','buildImport','exportAlloc','buildAlloc','resetWorkers',
     'blocState','demandState','advanceBtn','event','eventStamp','eventTitle','eventBody','eventChoices','eventTeach',
-    'over','overStamp','overRank','overRankName','overVerdict','overStats','overCopy','againBtn','storyBtn','skipResultsBtn','fx','hudBottom'];
+    'over','overStamp','overRank','overRankName','overVerdict','overStats','overCopy','againBtn','storyBtn','fx','hudBottom'];
 
   // ---- run state ----
   var s, alloc, laborPool, deck, queuedEvent, seed, muted, started=false, savedScrollY=0, prevCommodity, prevMfg, ranOnce=false;
@@ -164,11 +164,15 @@
     });
     el.turnNum.textContent=Math.min(s.year,12);
   }
+  function signMoney(v){ v=Math.round(v); return (v<0?'−$':'+$')+Math.abs(v); }
   function renderPayoffs(animate){
-    var pe=M.projExport(s), pb=M.projBuild(s);
-    if(animate && !reduceMotion){ animNum(el.exportPayoff, parseFloat(el.exportPayoff.dataset.v||pe), pe, function(v){return '+$'+Math.round(v);},900); animNum(el.buildPayoff, parseFloat(el.buildPayoff.dataset.v||pb), pb, function(v){return '+$'+Math.round(v);},900); }
-    else { el.exportPayoff.textContent='+$'+Math.round(pe); el.buildPayoff.textContent='+$'+Math.round(pb); }
+    var pe=M.projExport(s), pb=M.projBuild(s), pi=M.projImport(s);
+    if(animate && !reduceMotion){ animNum(el.exportPayoff, parseFloat(el.exportPayoff.dataset.v||pe), pe, function(v){return '+$'+Math.round(v);},900); animNum(el.buildPayoff, parseFloat(el.buildPayoff.dataset.v||pb), pb, signMoney,900); }
+    else { el.exportPayoff.textContent='+$'+Math.round(pe); el.buildPayoff.textContent=signMoney(pb); }
     el.exportPayoff.dataset.v=pe; el.buildPayoff.dataset.v=pb;
+    // build NET can be negative early (imported machines cost more than infant-industry output) — that IS the lesson
+    el.cardBuild.classList.toggle('is-loss', pb<0);
+    if(el.buildImport) el.buildImport.textContent='machines −$'+Math.round(pi);
     // bloc
     if(s.flags.bloc){ el.cardBloc.classList.add('is-locked'); el.blocState.textContent='✓ joined'; }
     else if(alloc.lever==='bloc'){ el.cardBloc.classList.remove('is-locked'); el.blocState.textContent='✓ SELECTED · joins on advance'; }
@@ -292,8 +296,10 @@
   function explainTurn(before, bk){
     var lived=M.C.START_YEAR + s.year - 2;
     var income=Math.round((bk.exportIncome||0)+(bk.buildIncome||0));
+    var imp=Math.round(bk.importBill||0);
     var com=Math.round(s.commodityIndex), dc=Math.round(before.c - s.commodityIndex);
-    var msg=lived+': you earned $'+income+', and upkeep took $'+M.C.UPKEEP+'.';
+    var msg=lived+': you earned $'+income+', upkeep took $'+M.C.UPKEEP;
+    msg += imp>0 ? (', and imported machines cost $'+imp+'.') : '.';
     if(dc>0) msg+=' Commodity prices fell to '+com+', so your raw exports buy less than last year.';
     else if(dc<0) msg+=' Commodity prices rose to '+com+'.';
     else msg+=' Commodity prices held at '+com+'.';
@@ -314,9 +320,11 @@
     var bk=M.model? null:null;
     var breakdown=M.applyTurn(s, alloc);
     haptic(8);
-    // reward coin-burst BEFORE consequence (the trap closes on the player)
-    var gained=(breakdown.exportIncome+breakdown.buildIncome);
+    // coin-burst on net trade cash (income minus imported-machine bill) — honest, so
+    // an early build-at-a-loss turn flashes red. Upkeep/bloc cost settle into the counter.
+    var gained=(breakdown.exportIncome+breakdown.buildIncome) - (breakdown.importBill||0);
     if(gained>0.5) chip(el.heroTreasury, '+'+money(gained), true);
+    else if(gained<-0.5) chip(el.heroTreasury, '−'+money(-gained), false);
     if(breakdown.demandFired){ blip('boom'); pulseUp(); toast('UNCTAD demand fired. Commodity index jumps. (non-binding)'); el.game.querySelector('.game__shell').classList.add('shake'); }
     // chart segment
     drawTurnSegment();
@@ -324,7 +332,6 @@
     // animate meters
     animNum(el.heroTreasury, before.t, s.treasury, money, 900);
     if(s.commodityIndex<before.c-0.5){ pulseDrop('.tank--treasury'); }
-    if(s.treasury<before.t){ /* upkeep/cost */ if(s.treasury<before.t-0.1 && gained<=0.5){ chip(el.heroTreasury,'-'+money(before.t-s.treasury),false);} }
     renderMeters(true); renderPips();
     if(before.c - s.commodityIndex > 3) { pulseDrop('.tank--barg'); }
 
@@ -377,6 +384,7 @@
       5:'a preference deal in the works',6:'a foreign investor circling',7:'reform winds (NIEO)',8:'the G77 rallying'}[ev.id]||'something';
   }
   function presentEvent(ev){
+    if(el.tut && !el.tut.hidden){ tutEnd(); }   // never let the tutorial overlay block an event's choices
     el.eventStamp.textContent=ev.stamp; el.eventTitle.textContent=ev.name; el.eventBody.textContent=ev.body; el.eventTeach.textContent='What this means: '+ev.teach;
     el.eventChoices.innerHTML='';
     blip('tick');
@@ -404,6 +412,7 @@
 
   // ============================ GAME OVER (§ debrief dossier) ============================
   function endGame(){
+    if(el.tut && !el.tut.hidden){ tutEnd(); }   // dismiss any lingering tutorial before the debrief
     var r=M.rank(s), info=M.RANKS[r], sc=M.model? M.score(s):0; sc=M.score(s);
     var win=(r==='A'||r==='S');
     el.game.classList.toggle('is-dead', r==='F');
@@ -422,7 +431,6 @@
     if(sc>best){ lsSet('ut_best',String(sc)); lsSet('ut_bestrank',r); best=sc; }
     var bestrank=lsGet('ut_bestrank')||r;
     el.overCopy.insertAdjacentHTML('beforeend','<p class="mono" style="font-size:.8rem;color:#7a7e74;border-top:1px dotted #c9c3b6;padding-top:.8rem;margin-top:1.1rem">BEST SCORE: '+best+' · rank '+bestrank+(sc>=best?' · new best!':'')+'</p>');
-    el.skipResultsBtn.hidden=true;
     el.over.hidden=false;
     if(!reduceMotion){ requestAnimationFrame(function(){ void el.overStamp.offsetWidth; el.overStamp.classList.add('is-thunk'); }); }
     el.againBtn.focus();
@@ -443,14 +451,14 @@
   // ============================ TUTORIAL (interactive walkthrough) ============================
   // Steps with `do` are hands-on: the spotlight waits until the player performs the action.
   var TUT_ALL=[
-    { title:'What you\u2019re playing', body:'You run one developing nation, starting in 1964. Your money comes from raw exports: coffee, copper, cotton. But here is the trap this whole story is about. Raw-commodity prices keep sliding while factory goods get pricier, so simply exporting more slowly makes you poorer.' },
-    { title:'Your goal', body:'Over twelve years, escape that trap. Grow your treasury, build industry to add value at home, and earn the leverage to demand fairer terms abroad. Survive and diversify and you climb from \u201cResource Colony\u201d toward \u201cDiversified Nation\u201d. Do both pillars, industry and leverage, and you reach the top rank. Let\u2019s play your first turn together.' },
+    { title:'What you\u2019re playing', body:'You run one developing nation, starting in 1964. Your money comes from two places: raw exports \u2014 coffee, copper, cotton \u2014 and the industry you choose to build at home. You have twelve years. Make your nation prosper.' },
+    { title:'Your goal', body:'Over twelve years, grow your treasury and your nation. Where you end up \u2014 from \u201cResource Colony\u201d to \u201cDiversified Nation\u201d \u2014 depends on the moves you make each year. There\u2019s no single right answer handed to you here; you\u2019ll find it by playing. Let\u2019s take your first turn together.' },
     { title:'Your treasury', target:'#heroTreasury', body:'This is your money. Every year a fixed upkeep cost is deducted, so doing nothing slowly bankrupts you. If it hits zero, the game ends in a debt crisis.' },
-    { title:'Your three gauges', target:'.rail', body:'Three things to watch. TREASURY is your cash. CAPACITY is how industrialised you are (your escape route). BARGAINING is your diplomatic leverage, which you\u2019ll need later to demand fairer terms.' },
-    { title:'The trap, in one chart', target:'.gchart', body:'The red line is the price of your raw commodities. Left alone it drifts down. The blue line is the price of factory goods, which drifts up. The widening gap between them is the squeeze you are fighting.' },
-    { title:'The terms-of-trade scale', target:'#beam', body:'This little balance is the same story as the chart. The red weight is your raw commodities; the blue is the world\u2019s factory goods. As commodity prices fall, the beam tips down on the red side: your harvest buys fewer machines each year. Build industry to level it back.' },
-    { title:'Send a worker to the factory', target:'#cardBuild', body:'You get five workers a year. Tap BUILD INDUSTRY now to send one to the factory. It earns little today, but capacity compounds and builds leverage.', doCheck:function(){ return alloc.build>=1; }, hint:'Tap Build Industry' },
-    { title:'Send a worker to the field', target:'#cardExport', body:'Now tap EXPORT COMMODITIES to send a worker to the field. Watch the projected payoff on the card: it is high now, but it falls every year as prices drop. That decay is the whole lesson.', doCheck:function(){ return alloc.ex>=1; }, hint:'Tap Export Commodities' },
+    { title:'Your three gauges', target:'.rail', body:'Three things to watch. TREASURY is your cash. CAPACITY is how industrialised you are. BARGAINING is diplomatic leverage \u2014 you can spend it later, once you have enough.' },
+    { title:'The two prices', target:'.gchart', body:'The red line is the world price of your raw commodities. The blue line is the price of finished factory goods. Keep an eye on both as the years pass \u2014 the chart is the story of the game.' },
+    { title:'The terms-of-trade scale', target:'#beam', body:'This little balance reads the same two prices live. The red weight is your raw commodities; the blue is the world\u2019s factory goods. However it tips tells you, at a glance, what your harvest is worth in machines this year.' },
+    { title:'Send a worker to the factory', target:'#cardBuild', body:'You get five workers a year. Tap BUILD INDUSTRY to send one to the factory. Factories need imported machines, so building costs cash now \u2014 watch the \u2212$ on the card \u2014 while capacity grows for later.', doCheck:function(){ return alloc.build>=1; }, hint:'Tap Build Industry' },
+    { title:'Send a worker to the field', target:'#cardExport', body:'Now tap EXPORT COMMODITIES to send a worker to the field. The card shows what it pays this year. Exports also earn the foreign exchange that pays for those imported machines.', doCheck:function(){ return alloc.ex>=1; }, hint:'Tap Export Commodities' },
     { title:'Arm a lever', target:'#cardBloc', body:'These last two cards are levers, not labour. Tap JOIN REGIONAL BLOC to arm it. Levers don\u2019t cost a worker; they fire when you advance the year. A bloc buys you bargaining power and softer shocks.', doCheck:function(){ return alloc.lever==='bloc'; }, hint:'Tap Join Regional Bloc' },
     { title:'Fill the rest, then advance', target:'#hudBottom', body:'Assign your remaining workers to either card (tap \u21ba Reset to start over), then press ADVANCE to live your first year. From here, you\u2019re on your own. Good luck.', doCheck:function(){ return s.year>1; }, hint:'Assign all 5, then Advance' }
   ];

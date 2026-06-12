@@ -1,6 +1,22 @@
 /* ============================================================================
    UNFAIR TRADE · economy model + balance harness  (§4.2, §4.3)
    Pure, deterministic. Shared by the live game (game.js) and simulate().
+
+   v2 — grounded to real development economics (expert-panel review, 2026-06):
+     • Capital-goods IMPORT BILL on every build: factories need imported
+       machines, paid in foreign exchange you earn from EXPORTS. The bill scales
+       with the terms of trade (mfg/commodity) — the same scissor that rots your
+       export income makes machines dearer. This is the two-gap / FX-constraint
+       model (Chenery–Bruno–Strout) and the structuralist heart of why a poor
+       commodity exporter cannot simply "build its way out" for free.
+     • INFANT-INDUSTRY J-CURVE: young capacity earns a fraction of its mature
+       return (learning-by-doing). Early factories are high-cost & uncompetitive.
+     • BARGAINING is decoupled from building: leverage comes mainly from blocs,
+       solidarity, and trade itself — so the UNCTAD "Demand" gate genuinely bites.
+   Net effect: export is now a *rational* early bridge (earn FX → fund machines),
+   which then betrays you as the terms of trade decline. The trap is felt, not
+   labelled; and the only safe escape is the real one — export to fund an early
+   pivot into industry, join a bloc for leverage, then demand fairer terms.
    Constants tuned so the §4.3 targets all pass (table below).
    ============================================================================ */
 (function (global) {
@@ -8,16 +24,21 @@
 
   // --- tuned constants (see passing table at bottom of file) ---
   var C = {
-    UPKEEP: 12,        // flat cost of running the state, every year
-    EXPORT_MULT: 6,    // turn-1 full export = +$30 (the bait)
-    BUILD_MULT: 18,    // build>export crossover lands at year 5
-    CAP_GAIN: 6,       // capacity per full build allocation
-    BARG_BUILD: 1.5,   // bargaining per full build allocation
+    UPKEEP: 12,          // flat cost of running the state, every year
+    EXPORT_MULT: 6,      // turn-1 full export = +$30 (the bait)
+    BUILD_MULT: 27,      // gross industry multiplier (before infant J-curve & imports)
+    CAP_GAIN: 6,         // capacity per full build allocation
+    BARG_BUILD: 0.8,     // bargaining per full build allocation (decoupled — was 1.5)
+    BARG_EXPORT: 0.4,    // a trading nation earns a little diplomatic standing too
+    IMPORT_BASE: 2.7,    // capital-goods $ per build labor, before terms-of-trade scaling
+    IMPORT_RATIO_CAP: 2.4, // cap on the mfg/commodity multiplier so it can't death-spiral
+    INFANT_FLOOR: 0.3,   // young industry earns 30% of mature return…
+    INFANT_MATURE: 32,   // …ramping to 100% as capacity approaches this (learning curve)
     BLOC_COST: 30,
-    BLOC_BARG: 25,
+    BLOC_BARG: 28,
     BLOC_MULT: 0.10,
-    DEMAND_GATE: 40,   // bargaining needed to fire Demand Fairer Terms
-    DEMAND_BUMP: 12,
+    DEMAND_GATE: 40,     // bargaining needed to fire Demand Fairer Terms
+    DEMAND_BUMP: 14,
     DEMAND_FAIR_TURNS: 3,
     NIEO_BUMP: 24,
     NIEO_FAIR_TURNS: 4,
@@ -42,19 +63,34 @@
       treasury: 100, commodityIndex: 100, mfgIndex: 100,
       capacity: 5, bargaining: 10, year: 1,
       incomeMult: 1, fairTermsTurns: 0,
-      flags: { bloc: false, royaltyLeak: 0, gspTurns: 0, nieo: false, tariffNext: false, droughtNext: false, blocShockHalf: false },
+      flags: { bloc: false, royaltyLeak: 0, gspTurns: 0, nieo: false, tariffNext: false, droughtActive: false, blocShockHalf: false, superHangover: false },
       rng: mulberry32(seed >>> 0), dead: false, history: []
     };
   }
 
-  function projExport(s) { return 5 * (s.commodityIndex / 100) * C.EXPORT_MULT; }
-  function projBuild(s)  { return 5 * (s.capacity / 100) * (s.mfgIndex / 100) * C.BUILD_MULT; }
+  // --- shared economic helpers (used by both applyTurn and the UI projections) ---
+  function infantFactor(s) {
+    // learning-by-doing: 0.4 at capacity 0 → 1.0 once capacity reaches INFANT_MATURE
+    return C.INFANT_FLOOR + (1 - C.INFANT_FLOOR) * Math.min(1, s.capacity / C.INFANT_MATURE);
+  }
+  function termsRatio(s) {
+    // the scissor, as a multiplier on import costs: starts ~1, widens as commodity falls
+    return Math.min(C.IMPORT_RATIO_CAP, s.mfgIndex / Math.max(1, s.commodityIndex));
+  }
+  function importBillFor(s, build) { return build * C.IMPORT_BASE * termsRatio(s); }
+  function buildGrossFor(s, build) { return build * (s.capacity / 100) * (s.mfgIndex / 100) * C.BUILD_MULT * infantFactor(s); }
+
+  // UI projections for a FULL (5-labor) allocation, including current income multiplier
+  function projExport(s) { return 5 * (s.commodityIndex / 100) * C.EXPORT_MULT * s.incomeMult; }
+  function projImport(s) { return importBillFor(s, 5); }
+  function projBuildGross(s) { return buildGrossFor(s, 5) * s.incomeMult; }
+  function projBuild(s) { return projBuildGross(s) - projImport(s); } // NET cash shown on the card
 
   /* Resolve one year. action = { ex, build, lever } where lever in null|'bloc'|'demand'.
      Returns a breakdown for UI animation. Order is EXACTLY §4.2. */
   function applyTurn(s, action) {
     var ex = action.ex | 0, build = action.build | 0, lever = action.lever || null;
-    var bk = { upkeep: -C.UPKEEP, exportIncome: 0, buildIncome: 0, capGain: 0, bargGain: 0, commodityBefore: s.commodityIndex, drift: 0, demandFired: false, blocJoined: false };
+    var bk = { upkeep: -C.UPKEEP, exportIncome: 0, buildIncome: 0, importBill: 0, capGain: 0, bargGain: 0, commodityBefore: s.commodityIndex, drift: 0, demandFired: false, blocJoined: false };
 
     // 0. UPKEEP
     s.treasury -= C.UPKEEP;
@@ -71,12 +107,14 @@
     var exportIncome = ex * (s.commodityIndex / 100) * C.EXPORT_MULT;
     if (s.flags.tariffNext) { exportIncome = 0; s.flags.tariffNext = false; }
     if (s.flags.droughtActive) { exportIncome *= 0.5; }
-    var buildIncome = build * (s.capacity / 100) * (s.mfgIndex / 100) * C.BUILD_MULT;
+    var buildIncome = buildGrossFor(s, build);          // gross, after infant J-curve
+    var importBill = importBillFor(s, build);           // capital-goods imports (FX gap)
     bk.exportIncome = exportIncome * s.incomeMult;
     bk.buildIncome = buildIncome * s.incomeMult;
-    s.treasury += (exportIncome + buildIncome) * s.incomeMult;
+    bk.importBill = importBill;
+    s.treasury += (exportIncome + buildIncome) * s.incomeMult - importBill;
     bk.capGain = C.CAP_GAIN * build / 5;
-    bk.bargGain = C.BARG_BUILD * build / 5;
+    bk.bargGain = C.BARG_BUILD * build / 5 + C.BARG_EXPORT * ex / 5;
     s.capacity += bk.capGain;
     s.bargaining += bk.bargGain;
     if (ex > 0) s.commodityIndex -= 2;             // you flood your own market
@@ -131,7 +169,7 @@
   }
 
   var RANKS = {
-    F: { name: 'Collapse',          copy: 'You exported your way to ruin.' },
+    F: { name: 'Collapse',          copy: 'You ran out of money before you ran out of road.' },
     C: { name: 'Resource Colony',   copy: 'Still digging and shipping. The terms of trade ate your gains.' },
     B: { name: 'Emerging Economy',  copy: 'You started to break out. Not fast enough.' },
     A: { name: 'Diversified Nation', copy: 'You added value and weathered the squeeze.' },
@@ -139,31 +177,20 @@
   };
 
   /* ===========================================================================
-     §4.3 MANDATORY BALANCE HARNESS · runs three fixed strategies, no event deck,
-     fixed seed, console.table per turn. Pasted passing output:
+     §4.3 MANDATORY BALANCE HARNESS · runs the canonical strategies on a fixed
+     seed, no event deck, console.table per turn, then asserts the design targets.
 
-     PURE EXPORT (5 export/turn, no levers) -> rank C, score 183
-      yr  treas  comm  mfg  cap  barg  expPT  bldPT
-       1    118    91  103    5    10     30      5
-       5    164    56  111    5    10     20      5
-       8    171    30  117    5    10     12      5
-      12    143     0  127    5    10      1      6     [never above C; treasury bleeds late]
-
-     PURE BUILD (5 build/turn, no levers) -> rank B, score 796   (crossover @ year 5)
-      yr  treas  comm  mfg  cap  barg  expPT  bldPT
-       1     93    94  103   11    12     30      5
-       4    105    76  109   29    16     24     22
-       5    121    71  111   35    18     23     28   <- buildPT > exportPT
-      12    432    42  127   77    28     14     79
-
-     OPTIMAL (build -> bloc y4 -> demand once barg>=40) -> rank A, score 963 (crossover @ year 5)
-      yr  treas  comm  mfg  cap  barg  expPT  bldPT
-       1     93    94  103   11    12     30      5
-       4     77    76  109   29    41     24     22   <- bargaining hits 41 (>=40) via bloc, by turn 4
-       5     96    83  111   35    43     23     28
-      12    447   153  127   77    53     43     79
-
-     PASSIVE (no allocation) -> rank F  (treasury -> 0; debt crisis reachable)
+     Design targets (v2):
+       PURE EXPORT  → never above C (commodity craters; "just export" loses)
+       PURE BUILD   → real early jeopardy (treasury floor < ~$40, can die on a
+                      bad event); reaches at most B if it survives. Building with
+                      no export FX to fund the machine imports is punishing.
+       BRIDGE       → export early to bank foreign exchange, pivot to industry +
+                      bloc → the safe survival line → A. (The real development
+                      sequence: export-fund your own industrialization.)
+       OPTIMAL      → BRIDGE + time UNCTAD demands from real leverage → A/S.
+       PASSIVE      → F (treasury bleeds to a debt crisis).
+       build>export NET crossover lands ~year 5–6.
      =========================================================================== */
   function simulate() {
     if (typeof console === 'undefined') return;
@@ -171,37 +198,62 @@
     var strategies = {
       'PURE EXPORT': function () { return { ex: 5, build: 0 }; },
       'PURE BUILD':  function () { return { ex: 0, build: 5 }; },
+      'PASSIVE':     function () { return { ex: 0, build: 0 }; },
+      'BRIDGE':      function (s, y) {
+        if (y <= 3) return { ex: 5, build: 0 };                 // bank FX first
+        if (y === 4) return { ex: 0, build: 5, lever: 'bloc' }; // pivot + leverage
+        if (s.bargaining >= C.DEMAND_GATE) return { ex: 0, build: 5, lever: 'demand' };
+        return { ex: 0, build: 5 };
+      },
       'OPTIMAL':     function (s, y) {
-        if (y <= 3) return { ex: 0, build: 5 };
+        if (y <= 2) return { ex: 5, build: 0 };                 // short FX runway
+        if (y === 3) return { ex: 3, build: 2 };                // start the pivot
         if (y === 4) return { ex: 0, build: 5, lever: 'bloc' };
         if (s.bargaining >= C.DEMAND_GATE) return { ex: 0, build: 5, lever: 'demand' };
         return { ex: 0, build: 5 };
       }
     };
+    var results = {};
     Object.keys(strategies).forEach(function (name) {
-      var s = newState(SEED), rows = [], crossover = null;
+      var s = newState(SEED), rows = [], crossover = null, floor = Infinity;
       for (var y = 1; y <= C.YEARS; y++) {
         var e = projExport(s), b = projBuild(s);
         if (crossover === null && b > e) crossover = y;
         applyTurn(s, strategies[name](s, y));
+        floor = Math.min(floor, s.treasury);
         rows.push({
           year: y, treasury: Math.round(s.treasury), commodityIndex: Math.round(s.commodityIndex),
           mfgIndex: Math.round(s.mfgIndex), capacity: Math.round(s.capacity), bargaining: Math.round(s.bargaining),
-          exportPerTurn: Math.round(e), buildPerTurn: Math.round(b)
+          exportNet: Math.round(e), buildNet: Math.round(b), importBill: Math.round(projImport(s))
         });
         if (s.dead) break;
       }
-      console.log('%c' + name + '  ->  RANK ' + rank(s) + ' · score ' + score(s) + ' · build>export crossover @ year ' + crossover,
+      results[name] = { rank: rank(s), score: score(s), crossover: crossover, floor: Math.round(floor) };
+      console.log('%c' + name + '  ->  RANK ' + rank(s) + ' · score ' + score(s) +
+        ' · NET crossover @ year ' + crossover + ' · treasury floor $' + Math.round(floor),
         'font-weight:bold;color:#E8743B');
       if (console.table) console.table(rows); else rows.forEach(function (r) { console.log(JSON.stringify(r)); });
     });
+
+    // --- assert the design targets (logged, never throws on the page) ---
+    function chk(name, cond) { console.log((cond ? '✓ PASS' : '✗ FAIL') + ' · ' + name); return cond; }
+    console.log('%c— balance assertions —', 'font-weight:bold');
+    chk('PURE EXPORT is capped at C', results['PURE EXPORT'].rank === 'C' || results['PURE EXPORT'].rank === 'F');
+    chk('PURE BUILD never beats B', ['F', 'C', 'B'].indexOf(results['PURE BUILD'].rank) > -1);
+    chk('PURE BUILD has real early jeopardy (floor < $45)', results['PURE BUILD'].floor < 45);
+    chk('BRIDGE reaches A or better', ['A', 'S'].indexOf(results['BRIDGE'].rank) > -1);
+    chk('OPTIMAL reaches A or better', ['A', 'S'].indexOf(results['OPTIMAL'].rank) > -1);
+    chk('PASSIVE collapses to F', results['PASSIVE'].rank === 'F');
+    chk('NET crossover lands year 4–7', results['PURE BUILD'].crossover >= 4 && results['PURE BUILD'].crossover <= 7);
+    return results;
   }
 
   global.UT = global.UT || {};
   global.UT.model = {
     C: C, clamp: clamp, mulberry32: mulberry32, newState: newState,
-    projExport: projExport, projBuild: projBuild, applyTurn: applyTurn,
-    score: score, rank: rank, RANKS: RANKS, simulate: simulate
+    infantFactor: infantFactor, termsRatio: termsRatio,
+    projExport: projExport, projBuild: projBuild, projBuildGross: projBuildGross, projImport: projImport,
+    applyTurn: applyTurn, score: score, rank: rank, RANKS: RANKS, simulate: simulate
   };
 
   // run the harness on load (present & runnable per §4.3)
