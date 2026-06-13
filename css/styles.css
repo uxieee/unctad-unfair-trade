@@ -626,3 +626,48 @@ body.is-playing{position:fixed;width:100%;overflow:hidden;}
 /* JS-off / no-motion fallback: ensure pinned content readable, reveals visible */
 .no-js .reveal{opacity:1;transform:none;}
 .no-js .spine{display:none;}
+
+/* ============================================================================
+   EXPORT MODE (/export) — paginate the whole report to 8.5×11 LANDSCAPE.
+   Each scene becomes exactly one page, so "Save as PDF" emits the full
+   presentation, one scene per page. (11in × 8.5in = 3300×2550px @ 300 DPI.)
+   ============================================================================ */
+@page{ size:11in 8.5in; margin:0; }
+
+html.export-mode{ scroll-snap-type:none; background:#2a2f33; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+html.export-mode body{ width:11in; margin:0 auto; background:#2a2f33; }
+html.export-mode .spine,
+html.export-mode .skip-link,
+html.export-mode .cold-open__scroll,
+html.export-mode #game{ display:none !important; }
+
+/* every scene → one fixed landscape page */
+html.export-mode main>.scene{
+  width:11in; height:8.5in; min-height:0; max-height:8.5in; box-sizing:border-box;
+  padding:0.5in 0.72in; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+  page-break-after:always; break-after:page; scroll-snap-align:none;
+  margin:0 auto 16px;                                   /* screen-only gutter between pages */
+  box-shadow:0 16px 50px -16px rgba(0,0,0,.55);
+}
+html.export-mode main>.scene:last-child{ page-break-after:auto; break-after:auto; }
+
+/* neutralise full-viewport / pin sizing so content centres in one page */
+html.export-mode .cold-open,
+html.export-mode .handoff,
+html.export-mode .close{ min-height:0; overflow:hidden; }
+html.export-mode .pin-scene{ padding:0.5in 0.72in; }
+html.export-mode .pin-wrap{ min-height:0; height:100%; }
+html.export-mode .pin-stage{ min-height:0; height:100%; align-items:center; }
+
+/* show all revealed content; fit dense scenes */
+html.export-mode .reveal{ opacity:1 !important; transform:none !important; }
+html.export-mode .grid{ align-items:center; width:100%; gap:0.55in; }
+html.export-mode .cold-open__q{ font-size:clamp(1.8rem,3.4vw,2.6rem); }
+html.export-mode .lede{ font-size:1.12rem; }
+
+@media print{
+  html.export-mode,
+  html.export-mode body{ background:#fff; width:auto; }
+  html.export-mode main>.scene{ margin:0; box-shadow:none; }
+}

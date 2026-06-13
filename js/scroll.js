@@ -8,6 +8,12 @@
   var reduce = global.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };
 
+  // EXPORT MODE: /export renders the report as static, paginated 8.5×11 landscape pages
+  // (one scene per page) so "Save as PDF" yields the whole presentation, one page each.
+  // Everything is shown in its FINAL state — no scroll reveals, no pinned scrubbing.
+  var EXPORT = /\/export\/?$/.test(location.pathname) || location.hash === '#export' || /(?:^|[?&])export(?:=|&|$)/.test(location.search);
+  if (EXPORT) document.documentElement.classList.add('export-mode');
+
   // ---------------------------------------------------------------- count-up
   function countUp(node) {
     var to = parseFloat(node.dataset.countup), suffix = node.dataset.suffix || '';
@@ -32,7 +38,16 @@
       io.unobserve(t);
     });
   }, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
-  document.querySelectorAll('.reveal,[data-countup],#sec-rx').forEach(function (n) { io.observe(n); });
+  if (EXPORT) {
+    // reveal everything immediately, in final state — nothing is gated behind scroll
+    document.querySelectorAll('.reveal,#sec-rx').forEach(function (n) { n.classList.add('is-in'); });
+    document.querySelectorAll('[data-countup]').forEach(function (n) {
+      n.textContent = Math.round(parseFloat(n.dataset.countup)) + (n.dataset.suffix || '');
+    });
+    document.querySelectorAll('#checklist li').forEach(function (li) { li.classList.add('is-checked'); });
+  } else {
+    document.querySelectorAll('.reveal,[data-countup],#sec-rx').forEach(function (n) { io.observe(n); });
+  }
 
   function revealChecklist() {
     var items = document.querySelectorAll('#checklist li');
@@ -167,7 +182,7 @@
       depReadout.textContent = target + ' / 143 commodity-dependent';
     }
 
-    if (reduce || !global.gsap || !global.ScrollTrigger) {
+    if (EXPORT || reduce || !global.gsap || !global.ScrollTrigger) {
       drawScissor(1); flipDots(1); return; // final state, unpinned
     }
     gsap.registerPlugin(ScrollTrigger);
