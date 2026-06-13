@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unfair Trade · report (8.5×11 landscape, print/PDF)</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deep-atlantic:#0B1E2D; --slate-sea:#16323F; --bleached-clay:#C9C6BE; --cold-tin:#8A9BA8;
+    --terracotta:#E8743B; --brass:#F2B705; --verdant:#0E8A6B; --un-blue:#4B92DB;
+    --alarm-rust:#C24A3A; --parchment:#F4EFE6; --warm:#F7EAD9; --ink:#0B0E14; --ink-on-dark:#E8E4DA;
+    --f-display:"Fraunces",Georgia,serif; --f-body:"Inter",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#2a2f33;}
+  body{font-family:var(--f-body);display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 0;}
+
+  /* =================== ONE 8.5×11 LANDSCAPE PAGE =================== */
+  .page{
+    position:relative;width:11in;height:8.5in;overflow:hidden;
+    padding:0.72in 0.82in;display:flex;flex-direction:column;justify-content:center;
+    background:var(--parchment);color:var(--ink);
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    box-shadow:0 16px 50px -18px rgba(0,0,0,.6);
+  }
+  .page--dark{background:var(--deep-atlantic);color:var(--ink-on-dark);}
+  .page--warm{background:var(--warm);color:var(--ink);}
+  .page--dark h1,.page--dark h2{color:#fff;}
+
+  /* dotted grain for dark pages */
+  .page--dark::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 1px 1px,var(--bleached-clay) 1px,transparent 1.6px);background-size:13px 13px;opacity:.045;}
+
+  .inner{position:relative;z-index:2;width:100%;}
+  .two{display:flex;gap:0.7in;align-items:center;width:100%;}
+  .two>.col{flex:1 1 0;min-width:0;}
+
+  /* type */
+  h1{font-family:var(--f-display);font-weight:700;line-height:.96;letter-spacing:-.015em;}
+  h2{font-family:var(--f-display);font-weight:600;line-height:1.02;letter-spacing:-.01em;}
+  p{line-height:1.5;margin-bottom:.62em;max-width:46ch;}
+  .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;}
+  strong{font-weight:700;}
+  em{font-style:italic;}
+  .kicker{font-family:var(--f-mono);text-transform:uppercase;font-size:11.5pt;letter-spacing:.15em;color:var(--cold-tin);margin-bottom:.32in;}
+  .kicker--alarm{color:var(--alarm-rust);} .kicker--warm{color:var(--terracotta);} .kicker--blue{color:var(--un-blue);}
+  .page--warm .kicker,.page--paper .kicker{color:#7d7468;}
+  .lede{font-weight:500;font-size:15pt;line-height:1.45;}
+
+  /* page 1 — cold open */
+  .q{font-size:40pt;color:#fff;}
+  .q em{color:var(--bleached-clay);}
+  .ship{position:absolute;left:-.3in;bottom:-.15in;width:5.2in;opacity:.07;}
+  .ship path,.ship rect{fill:var(--bleached-clay);}
+
+  /* big year / stats */
+  .bigyear{font-family:var(--f-display);font-weight:700;font-size:62pt;line-height:1;color:var(--terracotta);margin-bottom:.12in;}
+  .statrow{display:flex;gap:.5in;margin-bottom:.32in;}
+  .stat__num{display:block;font-family:var(--f-display);font-weight:700;font-size:34pt;line-height:1;}
+  .stat__lab{display:block;font-size:9pt;letter-spacing:.06em;color:var(--cold-tin);text-transform:uppercase;margin-top:.06in;}
+  .geneva{font-family:var(--f-display);font-weight:700;font-size:30pt;line-height:1;margin:.1in 0 .04in;}
+  .geneva__sub{font-family:var(--f-mono);font-size:9pt;letter-spacing:.06em;color:var(--cold-tin);text-transform:uppercase;margin-bottom:.24in;}
+
+  /* pillars / lists */
+  .pillars{list-style:none;display:flex;flex-direction:column;gap:.16in;}
+  .pillars li{display:flex;gap:.18in;font-size:11.5pt;line-height:1.4;}
+  .pillars__n{color:var(--terracotta);font-size:9.5pt;font-weight:600;padding-top:.03in;}
+  .footnote{font-size:10.5pt;color:#5d564c;margin-top:.22in;}
+
+  /* monogram (Prebisch) */
+  .monogram{position:relative;width:2.7in;height:3.5in;background:var(--deep-atlantic);border-radius:8px;margin:auto;
+    display:flex;align-items:center;justify-content:center;}
+  .monogram__rp{font-family:var(--f-display);font-weight:700;font-size:64pt;color:var(--brass);}
+  .monogram__cap{position:absolute;bottom:.2in;left:0;right:0;text-align:center;font-family:var(--f-mono);font-size:9pt;letter-spacing:.08em;color:var(--bleached-clay);text-transform:uppercase;}
+
+  /* readout chips */
+  .readout{display:inline-block;font-family:var(--f-mono);font-size:10pt;letter-spacing:.04em;color:var(--alarm-rust);
+    border:1px solid rgba(194,74,58,.5);border-radius:6px;padding:.1in .18in;margin-top:.22in;}
+
+  /* charts */
+  .chart{width:100%;height:auto;display:block;}
+  .legend{display:flex;flex-direction:column;gap:.08in;margin-top:.16in;font-family:var(--f-mono);font-size:10pt;}
+  .legend .up{color:var(--un-blue);} .legend .dn{color:var(--alarm-rust);} .legend .note{color:var(--cold-tin);}
+
+  /* dot grid */
+  .dotgrid{display:grid;grid-template-columns:repeat(13,1fr);gap:.11in;width:4.6in;margin-left:auto;}
+  .dotgrid i{width:.2in;height:.2in;border-radius:50%;background:var(--slate-sea);display:block;}
+  .dotgrid i.on{background:var(--alarm-rust);}
+  .dotcap{font-family:var(--f-mono);font-size:9.5pt;color:var(--cold-tin);margin-top:.18in;text-align:right;}
+
+  /* play button (page 6) */
+  .play{display:inline-flex;align-items:center;gap:.16in;background:var(--terracotta);color:#fff;text-decoration:none;
+    border-radius:999px;padding:.2in .42in;font-family:var(--f-mono);font-weight:600;font-size:15pt;box-shadow:0 16px 40px -16px var(--terracotta);}
+  .play em{font-weight:600;}
+  .clickcue{display:block;margin-top:.24in;font-family:var(--f-mono);font-size:10pt;letter-spacing:.12em;text-transform:uppercase;color:var(--cold-tin);}
+  .clickcue b{color:var(--un-blue);}
+
+  /* checklist (page 8) */
+  .checklist{list-style:none;display:flex;flex-direction:column;gap:.16in;}
+  .checklist li{display:flex;gap:.16in;font-size:11.5pt;line-height:1.4;}
+  .check{flex:0 0 auto;width:.26in;height:.26in;border-radius:6px;background:var(--verdant);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11pt;font-weight:700;}
+  .rxbars{display:flex;align-items:flex-end;gap:.12in;height:1.3in;margin-top:.3in;}
+  .rxbars span{flex:1;background:var(--verdant);border-radius:4px 4px 0 0;}
+
+  /* limit columns (page 9) */
+  .limitcols{display:flex;gap:.6in;margin:.24in 0;}
+  .limitcols .col h3{font-family:var(--f-mono);font-size:10pt;letter-spacing:.06em;text-transform:uppercase;color:var(--alarm-rust);margin-bottom:.1in;}
+  .limitcols .col:last-child h3{color:var(--verdant);}
+  .center{text-align:center;}
+  .center p{margin-left:auto;margin-right:auto;}
+
+  /* screen-only download bar */
+  .toolbar{font-family:var(--f-mono);color:#cfd4d8;font-size:13px;text-align:center;line-height:1.6;}
+  .toolbar a{color:#E8743B;font-weight:600;}
+
+  /* =================== PRINT: emit only the pages, exact size =================== */
+  @page{ size:11in 8.5in; margin:0; }
+  @media print{
+    html,body{background:#fff;}
+    body{display:block;padding:0;gap:0;}
+    .toolbar{display:none;}
+    .page{box-shadow:none;break-after:page;page-break-after:always;}
+    .page:last-of-type{break-after:auto;page-break-after:auto;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  Unfair Trade · 10-page report, 8.5×11 landscape ·
+  <a href="/Unfair-Trade.pdf" download>⬇ Download clean PDF</a> ·
+  print: Cmd/Ctrl-P → Landscape → Margins None → ✔ Background graphics
+</div>
+
+<!-- 01 · COLD OPEN -->
+<section class="page page--dark">
+  <svg class="ship" viewBox="0 0 600 160" aria-hidden="true">
+    <path d="M40 120 L560 120 L530 150 L80 150 Z"></path>
+    <rect x="120" y="86" width="50" height="34"></rect><rect x="176" y="74" width="50" height="46"></rect>
+    <rect x="232" y="86" width="50" height="34"></rect><rect x="288" y="70" width="50" height="50"></rect>
+    <rect x="344" y="86" width="50" height="34"></rect><rect x="400" y="80" width="44" height="40"></rect>
+    <rect x="466" y="58" width="22" height="62"></rect><rect x="472" y="40" width="10" height="18"></rect>
+  </svg>
+  <div class="inner">
+    <p class="kicker">A report on UN Trade and Development</p>
+    <h1 class="q">In 1964, the poorest countries of the world<br>asked one question: <em>why does trade keep them poor?</em></h1>
+  </div>
+</section>
+
+<!-- 02 · BIRTH OF UNCTAD -->
+<section class="page">
+  <div class="inner two">
+    <div class="col">
+      <div class="monogram"><span class="monogram__rp">RP</span><span class="monogram__cap">Raúl Prebisch</span></div>
+    </div>
+    <div class="col">
+      <p class="bigyear">1964</p>
+      <h2 style="font-size:30pt;margin-bottom:.18in;">A conference becomes an institution.</h2>
+      <p class="lede" style="margin-bottom:.2in;">In the spring of 1964, delegates gathered in Geneva for the first United Nations Conference on Trade and Development. It was meant to last a few weeks. It never really ended.</p>
+      <p style="font-size:11pt;">At that first conference the developing nations organized themselves into the <strong>Group of 77</strong>, a bloc that survives today, and chose an Argentine economist, <strong>Raúl Prebisch</strong>, as the institution's first Secretary-General (1964–1969). His career rested on one uncomfortable idea: the world economy is split into a wealthy industrial <em>centre</em> and a commodity-exporting <em>periphery</em> — and the rules quietly favor the centre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 03 · WHAT UNCTAD IS -->
+<section class="page">
+  <div class="inner two">
+    <div class="col">
+      <p class="kicker">The institution, plainly</p>
+      <h2 style="font-size:30pt;">A permanent forum for the countries the trade system was not built for.</h2>
+      <p style="font-size:11.5pt;margin-top:.2in;">UNCTAD is a permanent intergovernmental body of the United Nations. It does not set tariffs or settle disputes. It does something quieter and, in 1964, genuinely new: it gives the developing world a standing place to study the trade system, name what is unfair about it, and argue for change.</p>
+    </div>
+    <div class="col">
+      <div class="statrow">
+        <div class="stat"><span class="stat__num mono">195</span><span class="stat__lab">member states · late 2025</span></div>
+        <div class="stat"><span class="stat__num mono">3</span><span class="stat__lab">pillars of work</span></div>
+      </div>
+      <p class="geneva">Geneva</p><p class="geneva__sub">headquarters since 1964</p>
+      <ul class="pillars">
+        <li><span class="mono pillars__n">01</span><div><strong>Research &amp; analysis.</strong> The data desk of the developing world, measuring how the terms of trade actually move.</div></li>
+        <li><span class="mono pillars__n">02</span><div><strong>Consensus-building.</strong> Quadrennial conferences where members negotiate shared positions, not binding rules.</div></li>
+        <li><span class="mono pillars__n">03</span><div><strong>Technical cooperation.</strong> Hands-on help for governments trying to climb the value ladder.</div></li>
+      </ul>
+      <p class="footnote">In 2024 the body was rebranded <strong>UN Trade and Development</strong>. The acronym, UNCTAD, was kept.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 04 · PREBISCH-SINGER THESIS -->
+<section class="page page--dark">
+  <div class="inner two">
+    <div class="col">
+      <p class="kicker kicker--alarm">The thesis · Prebisch-Singer</p>
+      <h2 style="font-size:31pt;">Your coffee buys fewer tractors each year.</h2>
+      <p style="font-size:11.5pt;margin-top:.2in;">The prices of raw commodities tend to fall over time against the price of manufactured goods. So a country that sells coffee, copper or cotton to buy machines finds the same harvest buying a little less each year. Economists call it a decline in the <strong>terms of trade</strong>. Prebisch and Hans Singer described it in 1950. It has been quietly true ever since.</p>
+      <span class="readout">TERMS-OF-TRADE GAP: 97 INDEX POINTS AND WIDENING</span>
+    </div>
+    <div class="col">
+      <svg class="chart" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet">
+        <g stroke="rgba(138,155,168,.20)" stroke-width="1">
+          <line x1="40" y1="40" x2="40" y2="330"/><line x1="40" y1="330" x2="620" y2="330"/>
+          <line x1="40" y1="185" x2="620" y2="185" stroke-dasharray="3 7"/>
+        </g>
+        <!-- gap fill -->
+        <path d="M40 185 L620 70 L620 300 L40 185 Z" fill="rgba(194,74,58,.10)"/>
+        <path d="M40 185 L620 70" stroke="#4B92DB" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M40 185 L620 300" stroke="#C24A3A" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <circle cx="620" cy="70" r="5.5" fill="#4B92DB"/><circle cx="620" cy="300" r="5.5" fill="#C24A3A"/>
+        <text x="612" y="58" fill="#4B92DB" font-family="IBM Plex Mono,monospace" font-size="14" text-anchor="end">MFG 150</text>
+        <text x="612" y="322" fill="#C24A3A" font-family="IBM Plex Mono,monospace" font-size="14" text-anchor="end">COMMODITY 53</text>
+        <text x="48" y="178" fill="#8A9BA8" font-family="IBM Plex Mono,monospace" font-size="12">1964 = 100</text>
+      </svg>
+      <div class="legend">
+        <span class="up">▲ Manufactures price index · rises</span>
+        <span class="dn">▼ Commodity price index · falls</span>
+        <span class="note">Manufactures climb; commodities slide. The pattern Prebisch and Singer named.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 · COMMODITY DEPENDENCE -->
+<section class="page page--dark">
+  <div class="inner two">
+    <div class="col">
+      <p class="kicker kicker--alarm">State of Commodity Dependence, 2025</p>
+      <h2 style="font-size:31pt;">Most developing economies still live and die by raw exports.</h2>
+      <p style="font-size:11.5pt;margin-top:.2in;">Of <strong>143</strong> developing economies measured, <strong>95</strong> are commodity-dependent: they earn more than 60% of their export income from raw materials — including more than <strong>80%</strong> of the world's Least Developed Countries. Selling more raw goods does not break the dependence. It deepens it. The way out is to <strong>diversify and add value</strong>.</p>
+      <span class="readout">95 / 143 COMMODITY-DEPENDENT</span>
+    </div>
+    <div class="col">
+      <div class="dotgrid" id="dotgrid"></div>
+      <p class="dotcap">13 columns × 11 rows = 143 economies · 95 commodity-dependent</p>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · THE SIMULATION (game) -->
+<section class="page page--dark center">
+  <div class="inner">
+    <p class="kicker kicker--warm" style="text-align:center;">The simulation</p>
+    <h2 style="font-size:36pt;margin-bottom:.2in;">Reading about it isn't<br>the same as living it.</h2>
+    <p class="lede" style="max-width:7in;">You are one developing nation. You have twelve years, from 1964 to 1976, and one job: get rich without staying a colony. Watch your best move stop working.</p>
+    <div style="margin-top:.34in;">
+      <a class="play" href="/game"><span aria-hidden="true">▶</span> Play <em>Unfair&nbsp;Trade</em></a>
+      <span class="clickcue">Click → <b>opens the simulation</b></span>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · DEBRIEF -->
+<section class="page">
+  <div class="inner two">
+    <div class="col">
+      <p class="kicker">Your run, against history</p>
+      <h2 style="font-size:29pt;">The line you drew is the line the data has been drawing for sixty years.</h2>
+      <p style="font-size:11pt;margin-top:.18in;border-left:3px solid var(--terracotta);padding-left:.18in;"><strong>That feeling — your best move quietly failing — is the whole point of this report.</strong> You just played the Prebisch-Singer thesis: a raw exporter's terms of trade decline year after year, so the only way out is to add value at home and demand fairer terms abroad. Everything that follows is how UNCTAD has fought that exact fight since 1964.</p>
+    </div>
+    <div class="col">
+      <svg class="chart" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet">
+        <g stroke="rgba(11,14,20,.12)" stroke-width="1">
+          <line x1="40" y1="30" x2="40" y2="280"/><line x1="40" y1="280" x2="575" y2="280"/>
+        </g>
+        <path d="M40 120 L130 138 L220 150 L310 168 L400 184 L490 205 L575 226" fill="none" stroke="#8A9BA8" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"/>
+        <text x="48" y="112" fill="#8A9BA8" font-family="IBM Plex Mono,monospace" font-size="12">1964 = 100</text>
+        <text x="575" y="246" fill="#8A9BA8" font-family="IBM Plex Mono,monospace" font-size="12" text-anchor="end">historical decline</text>
+      </svg>
+      <p class="dotcap" style="color:#7d7468;text-align:left;margin-left:.5in;">Left alone, the line falls. Play the game to draw your own against it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 08 · PRESCRIPTIONS -->
+<section class="page page--warm">
+  <div class="inner two">
+    <div class="col">
+      <p class="kicker kicker--warm">The way out</p>
+      <h2 style="font-size:31pt;">The escape is the way you won, or didn't.</h2>
+      <p style="font-size:11.5pt;margin-top:.2in;">A winning player does two things: adds value at home and demands fairer terms abroad. These are not invented game mechanics. They are UNCTAD's actual prescriptions, fought for across six decades.</p>
+      <div class="rxbars"><span style="height:40%"></span><span style="height:58%"></span><span style="height:72%"></span><span style="height:86%"></span><span style="height:100%"></span></div>
+    </div>
+    <div class="col">
+      <ul class="checklist">
+        <li><span class="check">✓</span><div><strong>Diversify &amp; add value.</strong> Stop shipping raw beans; ship roasted, ground, branded coffee. Every step up the value ladder slows the decline.</div></li>
+        <li><span class="check">✓</span><div><strong>Generalized System of Preferences (GSP).</strong> UNCTAD's idea: let rich markets cut tariffs for developing exporters — a leg up rather than a level field.</div></li>
+        <li><span class="check">✓</span><div><strong>New International Economic Order (1974).</strong> The G77's bid to rewrite the rules of global trade wholesale.</div></li>
+        <li><span class="check">✓</span><div><strong>Least Developed Countries category (1971).</strong> A formal class — today 44 countries — singled out for special support.</div></li>
+        <li><span class="check">✓</span><div><strong>Demand fairer terms, together.</strong> One exporter is a price-taker. A bloc is a negotiator.</div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 09 · THE HONEST LIMIT -->
+<section class="page center">
+  <div class="inner" style="max-width:8.5in;margin:0 auto;">
+    <p class="kicker kicker--blue" style="text-align:center;">The honest limit</p>
+    <h2 style="font-size:32pt;">A demand without leverage is just a press release.</h2>
+    <div class="limitcols" style="text-align:left;margin-top:.3in;">
+      <div class="col"><h3>What UNCTAD cannot do</h3><p style="font-size:11pt;">Unlike the World Trade Organization, it has no binding rules and no power to enforce them. It cannot fine a country or strike down a tariff.</p></div>
+      <div class="col"><h3>What it does instead</h3><p style="font-size:11pt;">Its influence is analytical and diplomatic. It produces the research, builds the coalitions, and sharpens the argument the developing world carries to the table.</p></div>
+    </div>
+    <p style="font-size:11.5pt;">That limit is why the game gates <strong>Demand Fairer Terms</strong> behind bargaining power. In the simulation, as in the world, you cannot simply ask for a better deal — you earn the standing to be heard by diversifying and by organizing.</p>
+  </div>
+</section>
+
+<!-- 10 · CLOSE -->
+<section class="page page--warm center">
+  <div class="inner" style="max-width:8.2in;margin:0 auto;">
+    <p class="kicker kicker--warm" style="text-align:center;">Present tense</p>
+    <h2 style="font-size:34pt;margin-bottom:.22in;">The conference that never ended is still in session.</h2>
+    <p class="lede">In October 2025, the sixteenth UNCTAD conference met in Geneva and adopted what it called the <strong>Geneva Consensus</strong>. The body now counts <strong>195 members</strong> and has been led since 2021 by <strong>Rebeca Grynspan</strong>. In 2024 it took a new public name — <strong>UN Trade and Development</strong> — and kept the old initials.</p>
+    <p style="font-size:11.5pt;margin-left:auto;margin-right:auto;">Sixty-one years after a roomful of newly free countries asked why trade kept them poor, the question still has not been fully answered. But it has, at last, a permanent place to be asked.</p>
+  </div>
+</section>
+
+<script>
+  // build the 143-dot grid (95 dependent), static — runs before print
+  (function(){
+    var g = document.getElementById('dotgrid'); if(!g) return;
+    for (var i=0;i<143;i++){ var d=document.createElement('i'); if(i<95) d.className='on'; g.appendChild(d); }
+  })();
+</script>
+</body>
+</html>
