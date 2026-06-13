@@ -310,9 +310,12 @@
     var lived=M.C.START_YEAR + s.year - 2;
     var income=Math.round((bk.exportIncome||0)+(bk.buildIncome||0));
     var imp=Math.round(bk.importBill||0);
+    var maint=Math.round(-(bk.maint||0));
     var com=Math.round(s.commodityIndex), dc=Math.round(before.c - s.commodityIndex);
-    var msg=lived+': you earned $'+income+', upkeep took $'+M.C.UPKEEP;
-    msg += imp>0 ? (', and imported machines cost $'+imp+'.') : '.';
+    var msg=lived+': your exports earned $'+income+', upkeep took $'+M.C.UPKEEP;
+    if(maint>0) msg += ', running your industry needed $'+maint+' of imported inputs';
+    msg += imp>0 ? (', and new machines cost $'+imp+'.') : '.';
+    if(income===0 && (maint>0||imp>0)) msg+=' Building earns nothing on its own — only exports bring in foreign exchange to pay for it.';
     if(dc>0) msg+=' Commodity prices fell to '+com+', so your raw exports buy less than last year.';
     else if(dc<0) msg+=' Commodity prices rose to '+com+'.';
     else msg+=' Commodity prices held at '+com+'.';
@@ -486,13 +489,13 @@
   // ============================ TUTORIAL (interactive walkthrough) ============================
   // Steps with `do` are hands-on: the spotlight waits until the player performs the action.
   var TUT_ALL=[
-    { title:'What you\u2019re playing', body:'You run one developing nation, starting in 1964. Your money comes from two places: raw exports \u2014 coffee, copper, cotton \u2014 and the industry you choose to build at home. You have twelve years. Make your nation prosper.' },
+    { title:'What you\u2019re playing', body:'You run one developing nation, starting in 1964. Your income comes from one place: exporting raw goods \u2014 coffee, copper, cotton. Building industry at home costs precious foreign exchange and earns no cash by itself \u2014 but it makes every export worth more. You have twelve years. Make your nation prosper.' },
     { title:'Your goal', body:'Over twelve years, grow your treasury and your nation. Where you end up \u2014 from \u201cResource Colony\u201d to \u201cDiversified Nation\u201d \u2014 depends on the moves you make each year. There\u2019s no single right answer handed to you here; you\u2019ll find it by playing. Let\u2019s take your first turn together.' },
     { title:'Your treasury', target:'#heroTreasury', body:'This is your money. Every year a fixed upkeep cost is deducted, so doing nothing slowly bankrupts you. If it hits zero, the game ends in a debt crisis.' },
     { title:'Your three gauges', target:'.rail', body:'Three things to watch. TREASURY is your cash. CAPACITY is how industrialised you are. BARGAINING is diplomatic leverage \u2014 you can spend it later, once you have enough.' },
     { title:'The two prices', target:'.gchart', body:'The red line is the world price of your raw commodities. The blue line is the price of finished factory goods. Keep an eye on both as the years pass \u2014 the chart is the story of the game.' },
     { title:'The terms-of-trade scale', target:'#beam', body:'This little balance reads the same two prices live. The red weight is your raw commodities; the blue is the world\u2019s factory goods. However it tips tells you, at a glance, what your harvest is worth in machines this year.' },
-    { title:'Send a worker to the factory', target:'#cardBuild', body:'You get five workers a year. Tap BUILD INDUSTRY to send one to the factory. Factories need imported machines, so building costs cash now \u2014 watch the \u2212$ on the card \u2014 while capacity grows for later.', doCheck:function(){ return alloc.build>=1; }, hint:'Tap Build Industry' },
+    { title:'Send a worker to the factory', target:'#cardBuild', body:'You get five workers a year. Tap BUILD INDUSTRY to send one to the factory. Factories need imported machines, so building costs foreign exchange now \u2014 watch the \u2212$ on the card \u2014 and earns no cash by itself. Its payoff: capacity makes every export you sell worth more.', doCheck:function(){ return alloc.build>=1; }, hint:'Tap Build Industry' },
     { title:'Send a worker to the field', target:'#cardExport', body:'Now tap EXPORT COMMODITIES to send a worker to the field. The card shows what it pays this year. Exports also earn the foreign exchange that pays for those imported machines.', doCheck:function(){ return alloc.ex>=1; }, hint:'Tap Export Commodities' },
     { title:'Arm a lever', target:'#cardBloc', body:'These last two cards are levers, not labour. Tap JOIN REGIONAL BLOC to arm it. Levers don\u2019t cost a worker; they fire when you advance the year. A bloc buys you bargaining power and softer shocks.', doCheck:function(){ return alloc.lever==='bloc'; }, hint:'Tap Join Regional Bloc' },
     { title:'Fill the rest, then advance', target:'#hudBottom', body:'Assign your remaining workers to either card (tap \u21ba Reset to start over), then press ADVANCE to live your first year. From here, you\u2019re on your own. Good luck.', doCheck:function(){ return s.year>1; }, hint:'Assign all 5, then Advance' }

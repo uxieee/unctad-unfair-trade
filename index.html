@@ -278,12 +278,12 @@
     <div class="hud-main">
       <!-- left rail: three capsule tanks -->
       <div class="rail" aria-hidden="false">
-        <div class="tank tank--treasury" title="Your cash. Upkeep drains it every year; reach $0 and you lose.">
+        <div class="tank tank--treasury" title="Your foreign exchange. Upkeep AND running your industry drain it every year; only exports refill it. Reach $0 and you lose.">
           <span class="tank__lab mono">TREASURY</span>
           <div class="tank__tube"><span class="tank__fill" id="tankTreasury"></span></div>
           <span class="tank__val mono" id="valTreasury">$100</span>
         </div>
-        <div class="tank tank--cap" title="How industrialised you are. Higher capacity slows the price decline and is your way out of the trap.">
+        <div class="tank tank--cap" title="How industrialised you are. Higher capacity slows the price decline AND raises what your exports earn — but bigger industry costs more foreign exchange to run each year.">
           <span class="tank__lab mono">CAPACITY</span>
           <div class="tank__tube"><span class="tank__fill" id="tankCap"></span></div>
           <span class="tank__val mono" id="valCap">5%</span>
@@ -366,7 +366,7 @@
         <button class="acard acard--build" id="cardBuild" type="button" data-key="2">
           <span class="acard__key mono">2</span>
           <span class="acard__name mono">BUILD INDUSTRY</span>
-          <span class="acard__desc">Add value. Needs imported machines now; it compounds later.</span>
+          <span class="acard__desc">Add value. Costs foreign exchange now and earns no cash by itself — its payoff is making every export worth more.</span>
           <span class="acard__payoff mono" id="buildPayoff">+$0</span>
           <span class="acard__import mono" id="buildImport"></span>
           <span class="acard__alloc mono" id="buildAlloc">0 labor</span>
@@ -374,14 +374,14 @@
         <button class="acard acard--bloc" id="cardBloc" type="button" data-key="3">
           <span class="acard__key mono">3</span>
           <span class="acard__name mono">JOIN REGIONAL BLOC</span>
-          <span class="acard__desc">−$48 once. +26 bargaining, +10% trade income, softens price shocks.</span>
+          <span class="acard__desc">−$34 once. +26 bargaining, +22% trade income, cheaper machine upkeep, softens price shocks.</span>
           <span class="acard__payoff mono">G77 · once</span>
           <span class="acard__alloc mono" id="blocState">available</span>
         </button>
         <button class="acard acard--demand" id="cardDemand" type="button" data-key="4">
           <span class="acard__key mono">4</span>
           <span class="acard__name mono">DEMAND FAIRER TERMS</span>
-          <span class="acard__desc">At UNCTAD. Lifts commodity +18, halves decline 4 yrs — but spends 5 leverage. <span class="nonbind" id="nonbind">non-binding</span></span>
+          <span class="acard__desc">At UNCTAD. Lifts commodity +24, halves decline 5 yrs — but spends 5 leverage. <span class="nonbind" id="nonbind">non-binding</span></span>
           <span class="acard__payoff mono">needs barg ≥ 40</span>
           <span class="acard__alloc mono" id="demandState">locked</span>
         </button>
