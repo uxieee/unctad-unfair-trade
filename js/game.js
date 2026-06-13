@@ -565,18 +565,27 @@
     document.body.style.top='';
     window.scrollTo(0,savedScrollY);
   }
-  function launch(){
+  // ---- deep-linking: /game (or #game) opens the game directly ----
+  function dirBase(){ var p=location.pathname; return p.slice(0, p.lastIndexOf('/')+1) || '/'; }
+  var homeUrl = dirBase() + location.search;          // the story page
+  var gameUrl = dirBase() + 'game' + location.search; // shareable game URL
+  function isGameRoute(){ return /\/game\/?$/.test(location.pathname) || location.hash==='#game'; }
+
+  function launch(fromRoute){
     ensureAudio(); if(actx && actx.state==='suspended') actx.resume();
     el.game.hidden=false; el.game.setAttribute('aria-hidden','false');
     lockScroll(); started=true;
     startGame();
     // the walkthrough shows every time you open the game; Skip dismisses it instantly
     setTimeout(startTutorial,140);
+    // reflect the open game in the URL so it can be shared / bookmarked / backed out of
+    if(fromRoute!==true){ try{ history.pushState({ut:'game'},'',gameUrl); }catch(e){} }
   }
-  function quit(toStory){
+  function quit(toStory, fromPop){
     if(el.tut && !el.tut.hidden){ tutEnd(); }   // don't leave the tutorial poller running after quit
     el.game.hidden=true; el.game.setAttribute('aria-hidden','true');
     document.body.classList.remove('is-playing'); document.body.style.top='';
+    if(fromPop!==true){ try{ history.pushState({ut:'home'},'',homeUrl); }catch(e){} }
     if(toStory){
       drawStoryDebrief();
       var d=document.getElementById('sec-debrief');
@@ -668,9 +677,16 @@
     muted = lsGet('ut_muted')==='1';
     el.muteBtn.setAttribute('aria-pressed',String(!muted)); el.muteBtn.textContent=muted?'♪̸':'♪';
     bindInput();
-    var pb=document.getElementById('playBtn'); if(pb) pb.addEventListener('click',launch);
+    var pb=document.getElementById('playBtn'); if(pb) pb.addEventListener('click',function(){ launch(); });
     window.addEventListener('resize',function(){ if(!el.game.hidden){ renderMeters(); renderWorkforce(); if(tutOpen()) positionTut(TUT[tutIndex]); } });
+    // browser back/forward toggles the overlay to match the URL (no new history entry)
+    window.addEventListener('popstate',function(){
+      if(isGameRoute()){ if(el.game.hidden) launch(true); }
+      else if(!el.game.hidden){ quit(false,true); }
+    });
     global.UT.game={ launch:launch };
+    // if we landed directly on /game (or #game), open the game immediately
+    if(isGameRoute()) launch(true);
   }
   if(document.readyState!=='loading') init(); else document.addEventListener('DOMContentLoaded',init);
 
